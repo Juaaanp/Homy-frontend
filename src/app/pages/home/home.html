@@ -1,1 +1,103 @@
-<p>home works!</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Homy</title>
+</head>
+
+<body>
+    <div class="hero-section text-center text-white d-flex flex-column justify-content-center align-items-center">
+        <div class="hero-content">
+            <h1 class="display-5 fw-bold">Find your perfect home in Colombia</h1>
+            <p class="lead">Discover unique stays and live unforgettable experiences in the most beautiful destinations
+                across the country</p>
+
+            <div class="search-bar mt-4 bg-white shadow rounded-4 p-3 d-flex flex-wrap justify-content-center gap-2">
+                <input class="form-control flex-grow-1" placeholder="Where to?" />
+                <input type="date" class="form-control" placeholder="Check-in" />
+                <input type="date" class="form-control" placeholder="Check-out" />
+                <input type="number" class="form-control" placeholder="Guests" />
+                <button class="btn btn-warning text-white px-4"><i class="bi bi-search"></i></button>
+            </div>
+
+            <div class="stats d-flex justify-content-center gap-5 mt-5">
+                <div>
+                    <h3>500+</h3>
+                    <p>Verified listings</p>
+                </div>
+                <div>
+                    <h3>10,000+</h3>
+                    <p>Happy guests</p>
+                </div>
+                <div>
+                    <h3>50+</h3>
+                    <p>Available cities</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="container my-5">
+        <h2 class="fw-bold mb-3">Featured accommodations</h2>
+        <p class="text-muted mb-4">Discover the most popular places in Colombia</p>
+        <div class="row g-4">
+            <div class="col-md-3" *ngFor="let acc of featured">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <img [src]="acc.image" class="card-img-top rounded-top-4" />
+                    <div class="card-body">
+                        <h5 class="card-title">{{ acc.name }}</h5>
+                        <p class="card-text text-muted small">{{ acc.city }}, Colombia</p>
+                        <p class="fw-semibold text-primary mb-0">{{ acc.price | currency:'USD' }}/night</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-light">
+        <div class="container text-center">
+            <h2 class="fw-bold mb-3">Explore by category</h2>
+            <p class="text-muted mb-4">Find the perfect type of accommodation for your next adventure</p>
+            <div class="row g-4">
+                <div class="col-md-4" *ngFor="let cat of categories">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <img [src]="cat.image" class="card-img-top" />
+                        <div class="card-body">
+                            <h5>{{ cat.title }}</h5>
+                            <p class="text-muted small">{{ cat.subtitle }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <p>Your trusted platform to find unique accommodations in Colombia.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Company</h6>
+                    <ul class="list-unstyled small">
+                        <li>About</li>
+                        <li>Careers</li>
+                        <li>Press</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Contact</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-envelope"></i> info@homy.co</li>
+                        <li><i class="bi bi-phone"></i> +57 300 123 4567</li>
+                        <li><i class="bi bi-geo-alt"></i> Armenia, Quindío</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

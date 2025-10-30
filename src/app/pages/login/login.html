@@ -1,1 +1,42 @@
-<p>login works!</p>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card p-5 shadow-lg border-0 rounded-4" style="max-width: 420px;">
+            <h3 class="fw-bold mb-2 text-center">Sign in to Homy</h3>
+            <p class="text-center text-muted mb-4">Welcome back! Please enter your details.</p>
+
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="you@email.com" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" placeholder="Your password" />
+                    <div class="text-end mt-1"><a href="#" class="small text-decoration-none text-warning">Forgot
+                            password?</a></div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="remember" />
+                    <label for="remember" class="form-check-label small">Remember me</label>
+                </div>
+
+                <button class="btn btn-warning w-100 text-white py-2 fw-semibold">Sign in</button>
+
+                <p class="text-center mt-4 small">
+                    Don’t have an account? <a href="/register" class="text-warning fw-semibold">Create one</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

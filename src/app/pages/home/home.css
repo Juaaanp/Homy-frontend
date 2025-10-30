@@ -1,0 +1,25 @@
+.hero-section {
+  background: linear-gradient(90deg, #ff7a00, #ff9a3d);
+  height: 70vh;
+}
+
+.hero-content {
+  max-width: 800px;
+}
+
+.search-bar input {
+  min-width: 160px;
+}
+
+.stats h3 {
+  color: #fff;
+  font-weight: 700;
+}
+
+.footer {
+  background-color: #0d1117;
+}
+
+.footer h6 {
+  font-weight: 600;
+}

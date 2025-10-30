@@ -1,1 +1,78 @@
-<p>register works!</p>
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>register</title>
+    </head>
+    <body>
+        <div class="container d-flex justify-content-center align-items-center my-5">
+            <div class="card p-5 shadow-lg border-0 rounded-4" style="max-width: 720px; width: 100%;">
+                <h3 class="fw-bold mb-2 text-center">Create your account</h3>
+                <p class="text-center text-muted mb-4">Join Homy to discover unique stays or host your property with
+                    confidence.</p>
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="name">Full name</label>
+                            <input class="form-control" type="text" name="name" id="name" placeholder="Your name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="email">Email</label>
+                            <input class="form-control" type="email" placeholder="you@email.com">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label" for="phone">Phone</label>
+                            <input class="form-control" type="text" name="phone" id="phone" placeholder="+57 3001234567">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="birthDate">Date of birth</label>
+                            <input class="form-control" type="date" name="birthDate" id="birthDate" placeholder="dd/mm/yyyy">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="password">Password</label>
+                            <input class="form-control" type="password" name="password" id="password" placeholder="At least 8 chars, 1 uppercase & 1 number">
+                            <p>Must include at least one uppercase letter an one number</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="confirmPass">Confirm password</label>
+                            <input class="form-control" type="password" name="ConfirmPass" id="ConfirmPass"
+                            placeholder="Repeat your password">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Account role</label>
+                            <select class="form-select">
+                                <option>Guest</option>
+                                <option>Host</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Profile photo (optional)</label>
+                            <input type="file" class="form-control" />
+                        </div>
+
+
+                        <div class="form-check mt-4">
+                            <input type="checkbox" class="form-check-input" id="terms" />
+                            <label for="terms" class="form-check-label small">
+                            I agree to the <a href="#" class="text-warning text-decoration-none">Terms of Service</a> and
+                            <a href="#" class="text-warning text-decoration-none">Privacy Policy</a>.
+                            </label>
+                        </div>
+
+                        <button class="btn btn-warning text-white w-100 mt-4 py-2 fw-semibold">Create account</button>
+
+                        <p class="text-center mt-3 small">
+                        Already have an account? <a href="/login" class="text-warning fw-semibold">Sign in</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
