@@ -1,0 +1,49 @@
+<div class="property-card group cursor-pointer">
+  <!-- Image -->
+  <div class="property-image-block">
+    <img 
+      [src]="imageUrl" 
+      [alt]="title"
+      class="property-image" />
+    <app-button 
+      variant="ghost" 
+      size="icon"
+      class="property-heart-btn">
+      <lucide-icon name="heart" class="property-heart-icon"></lucide-icon>
+    </app-button>
+    <app-badge *ngIf="isNew" class="property-badge">New</app-badge>
+  </div>
+  <!-- Content -->
+  <div class="property-content">
+    <div class="property-title-row">
+      <h3 class="property-title">{{ title }}</h3>
+      <div class="property-rating-row">
+        <lucide-icon name="star" class="property-star-icon"></lucide-icon>
+        <span class="property-rating">{{ rating }}</span>
+        <span class="property-review">({{ reviewCount }})</span>
+      </div>
+    </div>
+    <p class="property-location">{{ location }}</p>
+    <div class="property-price-row">
+      <span class="property-price">${{ price | number:'1.0-0' }}</span>
+      <span class="property-night">/ night</span>
+    </div>
+    <div class="property-actions">
+      <app-button 
+        variant="outline" 
+        size="sm" 
+        (click)="viewDetails()"
+        class="btn-view">
+        <lucide-icon name="eye"></lucide-icon>
+        View
+      </app-button>
+      <app-button 
+        size="sm" 
+        (click)="bookNow()"
+        class="btn-book">
+        <lucide-icon name="calendar-check"></lucide-icon>
+        Book
+      </app-button>
+    </div>
+  </div>
+</div>

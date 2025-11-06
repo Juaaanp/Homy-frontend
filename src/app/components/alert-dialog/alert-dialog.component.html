@@ -1,0 +1,30 @@
+<div class="alert-dialog">
+  <!-- trigger slot: clicking wrapper opens dialog -->
+  <div class="trigger-wrapper" (click)="openDialog()">
+    <ng-content select="[slot=trigger]"></ng-content>
+  </div>
+
+  <!-- overlay -->
+  <div class="overlay" *ngIf="open" (click)="closeOnOverlay ? closeDialog() : $event.stopPropagation()"></div>
+
+  <!-- content -->
+  <div class="content" *ngIf="open" role="alertdialog" aria-modal="true">
+    <div class="content-inner">
+      <header class="header">
+        <ng-content select="[slot=header]"></ng-content>
+        <h2 class="title"><ng-content select="[slot=title]"></ng-content></h2>
+      </header>
+
+      <div class="description"><ng-content select="[slot=description]"></ng-content></div>
+
+      <footer class="footer">
+        <ng-content select="[slot=actions]"></ng-content>
+        <!-- default actions if none provided -->
+        <div class="default-actions">
+          <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
+          <button type="button" class="btn confirm" (click)="onConfirm()">OK</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+</div>

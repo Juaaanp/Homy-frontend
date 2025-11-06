@@ -1,0 +1,68 @@
+/* Skeleton base styles */
+.skeleton-base {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-radius: 0.375rem;
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Pulse animation */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Common skeleton shapes */
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 60%;
+}
+
+.skeleton-avatar {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+}
+
+.skeleton-button {
+  height: 2.5rem;
+  width: 5rem;
+}
+
+.skeleton-card {
+  height: 8rem;
+  width: 100%;
+}
+
+/* Size variants */
+.skeleton-sm {
+  height: 0.75rem;
+}
+
+.skeleton-md {
+  height: 1rem;
+}
+
+.skeleton-lg {
+  height: 1.5rem;
+}
+
+.skeleton-xl {
+  height: 2rem;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-base {
+    animation: none;
+    opacity: 0.7;
+  }
+}

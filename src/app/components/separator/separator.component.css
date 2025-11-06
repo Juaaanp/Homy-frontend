@@ -1,0 +1,45 @@
+/* Separator styles */
+:host {
+  display: block;
+}
+
+/* Background color */
+.bg-border {
+  background-color: var(--bs-border-color);
+}
+
+/* Prevent shrinking */
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+/* Horizontal orientation (default) */
+.h-px {
+  height: 1px;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Vertical orientation */
+.h-full {
+  height: 100%;
+}
+
+.w-px {
+  width: 1px;
+}
+
+/* Orientation specific host styles */
+:host[data-orientation='horizontal'] {
+  display: block;
+  height: 1px;
+  width: 100%;
+}
+
+:host[data-orientation='vertical'] {
+  display: inline-block;
+  height: 100%;
+  width: 1px;
+}

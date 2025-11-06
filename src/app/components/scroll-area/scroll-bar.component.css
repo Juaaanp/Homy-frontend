@@ -1,0 +1,87 @@
+/* ScrollBar styles */
+:host {
+  position: absolute;
+  transition: background-color 150ms ease-in-out;
+  user-select: none;
+  touch-action: none;
+}
+
+:host[data-orientation='vertical'] {
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+:host[data-orientation='horizontal'] {
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.bg-border {
+  background-color: var(--bs-border-color);
+}
+
+.scroll-area-thumb {
+  position: relative;
+  flex: 1;
+  border-radius: 9999px;
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+.p-px {
+  padding: 1px;
+}
+
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.select-none {
+  user-select: none;
+}
+
+.w-2\.5 {
+  width: 0.625rem;
+}
+
+.h-2\.5 {
+  height: 0.625rem;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.border-l {
+  border-left-width: 1px;
+}
+
+.border-t {
+  border-top-width: 1px;
+}
+
+.border-l-transparent {
+  border-left-color: transparent;
+}
+
+.border-t-transparent {
+  border-top-color: transparent;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}

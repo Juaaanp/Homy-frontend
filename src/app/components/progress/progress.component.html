@@ -1,0 +1,14 @@
+<div
+  [class]="hostClasses"
+  role="progressbar"
+  [attr.aria-valuemin]="min"
+  [attr.aria-valuemax]="max"
+  [attr.aria-valuenow]="clamped"
+  data-slot="progress"
+>
+  <div
+    class="progress-indicator"
+    data-slot="progress-indicator"
+    [style.transform]="indicatorTransform"
+  ></div>
+</div>

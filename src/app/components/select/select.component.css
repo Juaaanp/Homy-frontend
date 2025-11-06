@@ -1,0 +1,66 @@
+/* Select styles */
+:host {
+  display: block;
+  width: 100%;
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Placeholder state */
+select[data-placeholder] {
+  color: var(--bs-secondary-color);
+}
+
+/* Focus styles */
+select:focus-visible {
+  outline: none;
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.5);
+}
+
+/* Invalid state */
+select[aria-invalid="true"] {
+  border-color: var(--bs-danger);
+  box-shadow: 0 0 0 3px rgba(var(--bs-danger-rgb), 0.2);
+}
+
+/* Base input styles */
+.border-input {
+  border-color: var(--bs-border-color);
+}
+
+.bg-input-background {
+  background-color: var(--bs-body-bg);
+}
+
+.text-muted-foreground {
+  color: var(--bs-secondary-color);
+}
+
+/* Size variants */
+select[data-size="default"] {
+  height: 2.25rem; /* h-9 */
+}
+
+select[data-size="sm"] {
+  height: 2rem; /* h-8 */
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+}

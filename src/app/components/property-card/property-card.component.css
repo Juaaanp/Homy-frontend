@@ -1,0 +1,168 @@
+/* Property Card styles */
+.property-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 260px;
+  max-width: 340px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.08);
+  overflow: hidden;
+}
+.property-image-block {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  background: #fff7ed;
+}
+.property-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 180px;
+  max-height: 220px;
+  transition: transform 0.3s;
+  background: #fff7ed;
+}
+.property-card:hover .property-image {
+  transform: scale(1.05);
+}
+.property-heart-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(4px);
+}
+.property-heart-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #fff;
+}
+.property-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: #F97316;
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.property-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem 1.25rem;
+}
+.property-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.property-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.property-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.property-star-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #FBBF24;
+  fill: #FBBF24;
+}
+.property-rating {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.property-review {
+  font-size: 0.95rem;
+  color: #888;
+}
+.property-location {
+  color: #666;
+  font-size: 0.95rem;
+}
+.property-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.property-price {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #F97316;
+}
+.property-night {
+  color: #888;
+  font-size: 0.95rem;
+}
+
+/* Property Actions */
+.property-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+
+.btn-view,
+.btn-book {
+  flex: 1;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  padding: 0.7rem 1.1rem !important;
+  min-width: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-view {
+  border: 2px solid #F97316 !important;
+  color: #F97316 !important;
+  background: white !important;
+}
+
+.btn-view:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-color: #EA580C !important;
+  color: #EA580C !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-book {
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
+}
+
+.btn-book:hover {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4) !important;
+}
+
+.btn-view lucide-icon,
+.btn-book lucide-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}

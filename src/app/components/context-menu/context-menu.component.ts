@@ -1,0 +1,8 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-context-menu',
+  template: '<ng-content></ng-content>',
+  standalone: true,
+})
+export class ContextMenuComponent {}

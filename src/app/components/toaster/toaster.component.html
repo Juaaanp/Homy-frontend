@@ -1,0 +1,46 @@
+<div class="toaster-group" [class.expand]="expand">
+  <div
+    *ngFor="let toast of toasts; trackBy: trackByToastId"
+    class="toast"
+    [attr.data-type]="toast.type"
+    [attr.data-dismissible]="toast.dismissible"
+    [class.rich-colors]="richColors">
+    
+    <!-- Icon -->
+    <div class="toast-icon" *ngIf="toast.type !== 'default'">
+      <span class="icon">{{ getIcon(toast.type) }}</span>
+      <div *ngIf="toast.type === 'loading'" class="spinner"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="toast-content">
+      <div class="toast-title" *ngIf="toast.title">{{ toast.title }}</div>
+      <div class="toast-description" *ngIf="toast.description">{{ toast.description }}</div>
+
+      <!-- Actions -->
+      <div class="toast-actions" *ngIf="toast.action || toast.cancel">
+        <button 
+          *ngIf="toast.action"
+          class="toast-action-button"
+          (click)="handleAction(toast)">
+          {{ toast.action.label }}
+        </button>
+        <button 
+          *ngIf="toast.cancel"
+          class="toast-cancel-button"
+          (click)="handleCancel(toast)">
+          {{ toast.cancel.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Close button -->
+    <button
+      *ngIf="toast.dismissible || closeButton"
+      class="toast-close"
+      (click)="dismiss(toast.id)"
+      aria-label="Close">
+      ✕
+    </button>
+  </div>
+</div>

@@ -1,0 +1,111 @@
+/* Switch Root */
+.switch-root {
+  display: inline-flex;
+  height: 1.15rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0;
+}
+
+/* Checked state */
+.switch-root[data-state="checked"] {
+  background-color: var(--bs-primary);
+}
+
+/* Unchecked state */
+.switch-root[data-state="unchecked"] {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Focus styles */
+.switch-root:focus-visible {
+  outline: none;
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+/* Disabled state */
+.switch-root:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Hover state (only when not disabled) */
+.switch-root:not(:disabled):hover {
+  filter: brightness(0.95);
+}
+
+/* Switch Thumb */
+.switch-thumb {
+  display: block;
+  pointer-events: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.2s;
+  transform: translateX(0);
+}
+
+/* Thumb checked position */
+.switch-thumb[data-state="checked"] {
+  transform: translateX(calc(100% - 2px));
+}
+
+/* Thumb unchecked position */
+.switch-thumb[data-state="unchecked"] {
+  transform: translateX(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .switch-root[data-state="unchecked"] {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .switch-thumb[data-state="unchecked"] {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
+  .switch-thumb[data-state="checked"] {
+    background-color: white;
+  }
+}
+
+/* Size variants */
+.switch-sm {
+  height: 0.875rem;
+  width: 1.5rem;
+}
+
+.switch-sm .switch-thumb {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.switch-lg {
+  height: 1.5rem;
+  width: 2.75rem;
+}
+
+.switch-lg .switch-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .switch-root,
+  .switch-thumb {
+    transition: none;
+  }
+}

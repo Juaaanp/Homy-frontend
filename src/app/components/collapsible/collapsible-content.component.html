@@ -1,0 +1,10 @@
+<div
+  class="collapsible-content"
+  [class.open]="parent.open"
+  [attr.aria-hidden]="!parent.open"
+  [style.maxHeight]="parent.open ? '1000px' : '0px'"
+>
+  <div class="collapsible-inner">
+    <ng-content></ng-content>
+  </div>
+</div>

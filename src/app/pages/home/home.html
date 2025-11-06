@@ -1,103 +1,271 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Homy</title>
-</head>
-
-<body>
-    <div class="hero-section text-center text-white d-flex flex-column justify-content-center align-items-center">
-        <div class="hero-content">
-            <h1 class="display-5 fw-bold">Find your perfect home in Colombia</h1>
-            <p class="lead">Discover unique stays and live unforgettable experiences in the most beautiful destinations
-                across the country</p>
-
-            <div class="search-bar mt-4 bg-white shadow rounded-4 p-3 d-flex flex-wrap justify-content-center gap-2">
-                <input class="form-control flex-grow-1" placeholder="Where to?" />
-                <input type="date" class="form-control" placeholder="Check-in" />
-                <input type="date" class="form-control" placeholder="Check-out" />
-                <input type="number" class="form-control" placeholder="Guests" />
-                <button class="btn btn-warning text-white px-4"><i class="bi bi-search"></i></button>
+<div class="min-h-screen bg-white">
+  <app-header></app-header>
+  
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-header">
+        <h1 class="hero-title">
+          Find your perfect home<br />
+          in Colombia
+        </h1>
+        <p class="hero-subtitle">
+          Discover unique stays and live unforgettable experiences
+        </p>
+      </div>
+      
+      <!-- SearchBar Premium -->
+      <div class="search-container">
+        <div class="search-grid">
+          
+          <!-- Location Field -->
+          <div 
+            [class]="activeField === 'location' ? 'search-field active' : 'search-field'"
+            (click)="setActiveField('location')">
+            <div class="search-field-header">
+              <lucide-icon 
+                name="map-pin" 
+                [class]="activeField === 'location' ? 'search-icon active' : 'search-icon'">
+              </lucide-icon>
+              <div class="search-field-content">
+                <div class="search-field-label">Where</div>
+                <input
+                  *ngIf="!searchParams.location"
+                  type="text"
+                  placeholder="Search destinations..."
+                  [(ngModel)]="searchParams.location"
+                  (keypress)="handleKeyPress($event)"
+                  class="search-input"
+                  [attr.autofocus]="activeField === 'location' ? true : null"
+                />
+                <div *ngIf="searchParams.location" class="search-value">
+                  {{ searchParams.location }}
+                </div>
+              </div>
             </div>
-
-            <div class="stats d-flex justify-content-center gap-5 mt-5">
-                <div>
-                    <h3>500+</h3>
-                    <p>Verified listings</p>
-                </div>
-                <div>
-                    <h3>10,000+</h3>
-                    <p>Happy guests</p>
-                </div>
-                <div>
-                    <h3>50+</h3>
-                    <p>Available cities</p>
-                </div>
+            
+            <!-- Popular destinations -->
+            <div *ngIf="activeField === 'location'" class="destinations-popup">
+              <div class="destinations-label">Popular destinations:</div>
+              <div class="destinations-grid">
+                <button
+                  *ngFor="let dest of popularDestinations"
+                  (click)="selectDestination(dest)"
+                  class="destination-btn">
+                  {{ dest }}
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- Check-in Field -->
+          <div 
+            [class]="activeField === 'checkIn' ? 'search-field active' : 'search-field'"
+            (click)="setActiveField('checkIn')">
+            <div class="search-field-header">
+              <lucide-icon 
+                name="calendar" 
+                [class]="activeField === 'checkIn' ? 'search-icon active' : 'search-icon'">
+              </lucide-icon>
+              <div class="search-field-content">
+                <div class="search-field-label">Check-in</div>
+                <div class="search-value">{{ formatDisplayDate(searchParams.checkIn) }}</div>
+              </div>
+            </div>
+            
+            <div *ngIf="activeField === 'checkIn'" class="date-popup">
+              <input
+                type="date"
+                [value]="searchParams.checkIn"
+                (change)="updateCheckIn($any($event.target).value)"
+                [min]="getTodayDate()"
+                class="date-input"
+                autofocus
+              />
+            </div>
+          </div>
+
+          <!-- Check-out Field -->
+          <div 
+            [class]="activeField === 'checkOut' ? 'search-field active' : 'search-field'"
+            (click)="setActiveField('checkOut')">
+            <div class="search-field-header">
+              <lucide-icon 
+                name="calendar" 
+                [class]="activeField === 'checkOut' ? 'search-icon active' : 'search-icon'">
+              </lucide-icon>
+              <div class="search-field-content">
+                <div class="search-field-label">Check-out</div>
+                <div class="search-value">{{ formatDisplayDate(searchParams.checkOut) }}</div>
+              </div>
+            </div>
+            
+            <div *ngIf="activeField === 'checkOut'" class="date-popup">
+              <input
+                type="date"
+                [value]="searchParams.checkOut"
+                (change)="updateCheckOut($any($event.target).value)"
+                [min]="getCheckoutMinDate()"
+                class="date-input"
+                autofocus
+              />
+            </div>
+          </div>
+
+          <!-- Guests Field -->
+          <div 
+            [class]="activeField === 'guests' ? 'search-field active' : 'search-field'"
+            (click)="setActiveField('guests')">
+            <div class="search-field-header">
+              <div class="search-field-row">
+                <lucide-icon 
+                  name="users" 
+                  [class]="activeField === 'guests' ? 'search-icon active' : 'search-icon'">
+                </lucide-icon>
+                <div class="search-field-content">
+                  <div class="search-field-label">Guests</div>
+                  <div class="search-value">
+                    {{ searchParams.guests }} {{ searchParams.guests === 1 ? 'guest' : 'guests' }}
+                  </div>
+                </div>
+              </div>
+              <lucide-icon 
+                name="chevron-down" 
+                [class]="activeField === 'guests' ? 'chevron-icon rotate' : 'chevron-icon'">
+              </lucide-icon>
+            </div>
+            
+            <div *ngIf="activeField === 'guests'" class="guests-popup">
+              <div class="guests-row">
+                <span class="guests-label">Guests</span>
+                <div class="guests-controls">
+                  <button (click)="decrementGuests()" class="guest-btn">-</button>
+                  <span class="guest-count">{{ searchParams.guests }}</span>
+                  <button (click)="incrementGuests()" class="guest-btn">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Button -->
+          <div class="search-button-wrapper">
+            <app-button 
+              (click)="handleSearch()"
+              [disabled]="!searchParams.location.trim()"
+              size="lg">
+              <lucide-icon name="search" class="search-btn-icon"></lucide-icon>
+              Search
+            </app-button>
+          </div>
         </div>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">
+            <lucide-icon name="trending-up" class="stat-icon"></lucide-icon>
+            500+
+          </div>
+          <div class="stat-label">Verified stays</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">
+            <lucide-icon name="star" class="stat-icon star-filled"></lucide-icon>
+            10,000+
+          </div>
+          <div class="stat-label">Happy guests</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">
+            <lucide-icon name="map-pin" class="stat-icon"></lucide-icon>
+            50+
+          </div>
+          <div class="stat-label">Available cities</div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <section class="container my-5">
-        <h2 class="fw-bold mb-3">Featured accommodations</h2>
-        <p class="text-muted mb-4">Discover the most popular places in Colombia</p>
-        <div class="row g-4">
-            <div class="col-md-3" *ngFor="let acc of featured">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <img [src]="acc.image" class="card-img-top rounded-top-4" />
-                    <div class="card-body">
-                        <h5 class="card-title">{{ acc.name }}</h5>
-                        <p class="card-text text-muted small">{{ acc.city }}, Colombia</p>
-                        <p class="fw-semibold text-primary mb-0">{{ acc.price | currency:'USD' }}/night</p>
-                    </div>
-                </div>
-            </div>
+  <!-- Featured Properties -->
+  <app-featured-properties></app-featured-properties>
+  
+  <!-- Categories -->
+  <div class="categories-section">
+    <div class="categories-header">
+      <h2 class="categories-title">Explore categories</h2>
+      <p class="categories-subtitle">Find the perfect type of stay for your trip</p>
+    </div>
+    <app-categories></app-categories>
+  </div>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="features-container">
+      <div class="features-header">
+        <h2 class="features-title">Why choose Homy?</h2>
+        <p class="features-subtitle">
+          We offer the best experience to find and book stays in Colombia
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon-wrapper">
+            <lucide-icon name="shield" class="feature-icon"></lucide-icon>
+          </div>
+          <h3 class="feature-title">Secure bookings</h3>
+          <p class="feature-description">
+            All our stays are verified and transactions are 100% secure
+          </p>
         </div>
-    </section>
 
-    <section class="py-5 bg-light">
-        <div class="container text-center">
-            <h2 class="fw-bold mb-3">Explore by category</h2>
-            <p class="text-muted mb-4">Find the perfect type of accommodation for your next adventure</p>
-            <div class="row g-4">
-                <div class="col-md-4" *ngFor="let cat of categories">
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                        <img [src]="cat.image" class="card-img-top" />
-                        <div class="card-body">
-                            <h5>{{ cat.title }}</h5>
-                            <p class="text-muted small">{{ cat.subtitle }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper">
+            <lucide-icon name="map-pin" class="feature-icon"></lucide-icon>
+          </div>
+          <h3 class="feature-title">Prime locations</h3>
+          <p class="feature-description">
+            Find stays in the best destinations in Colombia with strategic locations
+          </p>
         </div>
-    </section>
 
-    <footer class="footer text-white py-5 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <p>Your trusted platform to find unique accommodations in Colombia.</p>
-                </div>
-                <div class="col-md-4">
-                    <h6>Company</h6>
-                    <ul class="list-unstyled small">
-                        <li>About</li>
-                        <li>Careers</li>
-                        <li>Press</li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6>Contact</h6>
-                    <ul class="list-unstyled small">
-                        <li><i class="bi bi-envelope"></i> info@homy.co</li>
-                        <li><i class="bi bi-phone"></i> +57 300 123 4567</li>
-                        <li><i class="bi bi-geo-alt"></i> Armenia, Quindío</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper">
+            <lucide-icon name="heart" class="feature-icon"></lucide-icon>
+          </div>
+          <h3 class="feature-title">Personalized support</h3>
+          <p class="feature-description">
+            24/7 support and hosts committed to providing the best experience
+          </p>
         </div>
-    </footer>
+      </div>
+    </div>
+  </section>
 
-</body>
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2 class="cta-title">Ready for your next adventure?</h2>
+      <p class="cta-subtitle">
+        Join thousands of travelers who have already discovered amazing stays on Homy
+      </p>
+      <div class="cta-buttons">
+        <app-button 
+          size="lg"
+          (click)="navigateToExplore()">
+          Explore stays
+          <lucide-icon name="arrow-right" class="cta-icon"></lucide-icon>
+        </app-button>
+        <app-button 
+          size="lg"
+          variant="outline"
+          (click)="navigateToRegister()">
+          Register as host
+        </app-button>
+      </div>
+    </div>
+  </section>
 
-</html>
+  <app-footer></app-footer>
+</div>

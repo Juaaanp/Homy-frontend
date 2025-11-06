@@ -1,0 +1,17 @@
+<label [class]="hostClasses">
+  <input
+    type="radio"
+    class="radio-native"
+    [name]="name"
+    [disabled]="disabled || (group?.disabled ?? false)"
+    [checked]="checked"
+    (change)="onChange()"
+    [attr.aria-invalid]="(group?.invalid ? true : null)"
+  />
+  <span class="radio-visual">
+    <span class="radio-indicator" *ngIf="checked"></span>
+  </span>
+  <span class="radio-label">
+    <ng-content></ng-content>
+  </span>
+</label>

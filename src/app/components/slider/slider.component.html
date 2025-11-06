@@ -1,0 +1,38 @@
+<div 
+  class="slider-root"
+  [class]="className"
+  [attr.data-orientation]="orientation"
+  [attr.data-disabled]="disabled ? '' : null">
+  
+  <div 
+    #track
+    class="slider-track"
+    (click)="onTrackClick($event)">
+    
+    <div 
+      class="slider-range"
+      [style.left.%]="orientation === 'horizontal' ? getRangeStart() : null"
+      [style.width.%]="orientation === 'horizontal' ? getRangeSize() : null"
+      [style.bottom.%]="orientation === 'vertical' ? getRangeStart() : null"
+      [style.height.%]="orientation === 'vertical' ? getRangeSize() : null">
+    </div>
+  </div>
+
+  <div
+    *ngFor="let value of values; let i = index; trackBy: trackByIndex"
+    class="slider-thumb"
+    [class.active]="activeThumbIndex === i"
+    [style.left.%]="orientation === 'horizontal' ? getThumbPosition(i) : null"
+    [style.bottom.%]="orientation === 'vertical' ? getThumbPosition(i) : null"
+    [attr.tabindex]="disabled ? -1 : 0"
+    [attr.role]="'slider'"
+    [attr.aria-valuemin]="min"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="value"
+    [attr.aria-orientation]="orientation"
+    [attr.aria-disabled]="disabled"
+    (mousedown)="onThumbMouseDown($event, i)"
+    (touchstart)="onThumbTouchStart($event, i)"
+    (keydown)="onThumbKeyDown($event, i)">
+  </div>
+</div>

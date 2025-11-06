@@ -1,0 +1,2 @@
+.breadcrumb-separator { display: inline-flex; align-items: center; color: var(--muted-foreground, #6b7280); }
+.breadcrumb-separator svg { width: 14px; height: 14px; }

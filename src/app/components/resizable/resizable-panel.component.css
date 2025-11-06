@@ -1,0 +1,6 @@
+/* ResizablePanel styles */
+:host {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}

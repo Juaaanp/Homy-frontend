@@ -1,0 +1,19 @@
+<button
+  type="button"
+  role="switch"
+  [attr.aria-checked]="checked"
+  [attr.aria-disabled]="disabled"
+  [attr.id]="id || null"
+  [attr.name]="name || null"
+  [attr.aria-required]="required || null"
+  [disabled]="disabled"
+  [class]="'switch-root ' + className"
+  [attr.data-state]="checked ? 'checked' : 'unchecked'"
+  (click)="toggle()"
+  (keydown)="onKeyDown($event)">
+  
+  <span 
+    class="switch-thumb"
+    [attr.data-state]="checked ? 'checked' : 'unchecked'">
+  </span>
+</button>

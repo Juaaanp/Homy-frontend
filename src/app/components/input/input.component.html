@@ -1,0 +1,10 @@
+<input
+  [type]="type"
+  data-slot="input"
+  [attr.class]="defaultClasses + (className ? ' ' + className : '')"
+  [attr.aria-invalid]="ariaInvalid ? 'true' : null"
+  [disabled]="disabled"
+  [value]="value"
+  (input)="handleInput($event)"
+  (blur)="$any(onTouched)()"
+/>

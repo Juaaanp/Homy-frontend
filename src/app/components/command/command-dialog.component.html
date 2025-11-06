@@ -1,0 +1,11 @@
+<div class="cd-overlay" *ngIf="open" (click)="close()"></div>
+<div class="cd-dialog" *ngIf="open" role="dialog" aria-modal="true">
+  <header class="cd-header sr-only">
+    <h2 class="cd-title">{{ title }}</h2>
+    <p class="cd-desc">{{ description }}</p>
+  </header>
+
+  <section class="cd-content">
+    <ng-content></ng-content>
+  </section>
+</div>

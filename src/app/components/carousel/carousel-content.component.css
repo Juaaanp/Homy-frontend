@@ -1,0 +1,4 @@
+.carousel-viewport { overflow: auto; -webkit-overflow-scrolling: touch; }
+.carousel-track { display: flex; flex-direction: row; }
+.carousel-track.vertical { flex-direction: column; }
+.carousel-viewport::-webkit-scrollbar { display: none; }

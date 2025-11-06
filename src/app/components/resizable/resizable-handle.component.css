@@ -1,0 +1,36 @@
+/* ResizableHandle styles */
+:host {
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+:host([data-panel-group-direction='vertical']) {
+  cursor: row-resize;
+}
+
+:host:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+:host:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+.bg-border {
+  background-color: var(--bs-border-color);
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.rounded-xs {
+  border-radius: 0.125rem;
+}
+
+.size-2\.5 {
+  width: 0.625rem;
+  height: 0.625rem;
+}

@@ -1,0 +1,15 @@
+<div class="chart-legend" [ngClass]="verticalAlign">
+  <ng-container *ngIf="payload && payload.length">
+    <div *ngFor="let item of payload">
+      <div class="legend-item">
+        <ng-container *ngIf="!hideIcon">
+          <div class="legend-icon" *ngIf="!getPayloadConfigFromPayload(config || {}, item, (nameKey || item.dataKey || 'value'))?.icon" [style.backgroundColor]="item.color"></div>
+          <ng-container *ngIf="getPayloadConfigFromPayload(config || {}, item, (nameKey || item.dataKey || 'value'))?.icon">
+            <!-- Can't render component class directly easily; skip for now -->
+          </ng-container>
+        </ng-container>
+        <div class="legend-label">{{ getPayloadConfigFromPayload(config || {}, item, (nameKey || item.dataKey || 'value'))?.label || item.name }}</div>
+      </div>
+    </div>
+  </ng-container>
+</div>

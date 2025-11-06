@@ -1,0 +1,15 @@
+<textarea
+  [value]="value"
+  [placeholder]="placeholder"
+  [disabled]="disabled"
+  [readonly]="readonly"
+  [rows]="rows"
+  [id]="id || null"
+  [name]="name || null"
+  [required]="required || null"
+  [attr.maxlength]="maxlength || null"
+  [attr.aria-invalid]="invalid || null"
+  [class]="'textarea-base ' + className"
+  (input)="onInput($event)"
+  (blur)="onBlur()">
+</textarea>

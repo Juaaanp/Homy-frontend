@@ -1,0 +1,295 @@
+/* Header styles */
+.header-root {
+  border-bottom: 2px solid #fee2e2;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 5rem;
+}
+
+.header-logo-block {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo-flex {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.75rem;
+  transition: transform 0.3s;
+}
+
+.header-logo-flex:hover {
+  transform: scale(1.05);
+}
+
+.header-logo-img {
+  height: 2.5rem;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(249, 115, 22, 0.2));
+}
+
+.header-logo-text {
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .header-logo-text {
+    display: block;
+  }
+}
+
+.header-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.header-nav-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0.625rem 1.25rem;
+  border-radius: 12px;
+  position: relative;
+}
+
+.header-nav-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #F97316, #EA580C);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.header-nav-btn:hover {
+  color: #F97316;
+  background: #fff7ed;
+}
+
+.header-nav-btn:hover::before {
+  width: 80%;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-list-btn {
+  display: none;
+  font-weight: 700;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #fed7aa;
+  border-radius: 14px;
+  padding: 0.625rem 1.25rem;
+  background: white;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.header-list-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.header-list-btn:hover {
+  color: #F97316;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-color: #F97316;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
+}
+
+.header-list-btn:hover::before {
+  left: 100%;
+}
+
+.header-heart-btn {
+  display: none;
+  position: relative;
+  border: 2px solid #fed7aa;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+}
+
+.header-heart-btn:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-color: #F97316;
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
+}
+
+.header-heart-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #F97316;
+  transition: all 0.3s;
+}
+
+.header-heart-btn:hover .header-heart-icon {
+  fill: #F97316;
+  transform: scale(1.1);
+}
+
+.header-auth-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Sign In Button Styles */
+.header-auth-flex app-button[variant="outline"] {
+  border: 2px solid #F97316 !important;
+  color: #EA580C !important;
+  font-weight: 700 !important;
+  border-radius: 14px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-auth-flex app-button[variant="outline"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+
+.header-auth-flex app-button[variant="outline"]:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-color: #EA580C !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3) !important;
+  color: #C2410C !important;
+}
+
+.header-auth-flex app-button[variant="outline"]:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Sign Up Button Styles */
+.header-signup-btn {
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 700 !important;
+  border-radius: 14px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-signup-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.header-signup-btn:hover {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.5) !important;
+}
+
+.header-signup-btn:hover::before {
+  left: 100%;
+}
+
+.header-signup-btn:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+.header-menu-btn {
+  display: block;
+  border: 2px solid #fee2e2;
+  border-radius: 12px;
+  transition: all 0.3s;
+  background: white;
+}
+
+.header-menu-btn:hover {
+  background: #fff7ed;
+  border-color: #F97316;
+}
+
+.header-menu-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #F97316;
+}
+
+@media (min-width: 640px) {
+  .header-list-btn, .header-heart-btn {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .header-menu-btn {
+    display: none;
+  }
+}

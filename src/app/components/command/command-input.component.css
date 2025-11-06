@@ -1,0 +1,3 @@
+.ci-wrapper { display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.06); }
+.ci-input { flex:1; border:0; outline:none; font-size:0.95rem; background:transparent; }
+.ci-icon { opacity:0.6; }

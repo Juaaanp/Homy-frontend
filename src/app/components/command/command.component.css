@@ -1,0 +1,1 @@
+.command-root { display:flex; flex-direction:column; width:100%; height:100%; background:var(--popover-bg,#fff); color:var(--popover-fg,#111827); border-radius:8px; overflow:hidden; }

@@ -1,0 +1,38 @@
+<header class="header-root">
+  <div class="header-container">
+    <div class="header-flex">
+      <!-- Logo -->
+      <div class="header-logo-block">
+        <div class="header-logo-flex" (click)="navigate('/')">
+          <img src="/homysinfondo.png" alt="Homy" class="header-logo-img" />
+          <span class="header-logo-text">Homy</span>
+        </div>
+      </div>
+      <!-- Navigation Desktop -->
+      <nav class="header-nav">
+        <button (click)="navigate('/')" class="header-nav-btn">Home</button>
+        <button (click)="navigate('/explore')" class="header-nav-btn">Explore</button>
+      </nav>
+      <!-- Actions -->
+      <div class="header-actions">
+        <app-button variant="ghost" size="sm" class="header-list-btn">
+          List your space
+        </app-button>
+        <app-button variant="ghost" size="icon" class="header-heart-btn">
+          <lucide-icon name="heart" class="header-heart-icon"></lucide-icon>
+        </app-button>
+        <div class="header-auth-flex">
+          <app-button variant="outline" size="sm" (click)="navigate('/login')">
+            Sign in
+          </app-button>
+          <app-button size="sm" (click)="navigate('/register')" class="header-signup-btn">
+            Sign up
+          </app-button>
+        </div>
+        <app-button variant="ghost" size="icon" class="header-menu-btn">
+          <lucide-icon name="menu" class="header-menu-icon"></lucide-icon>
+        </app-button>
+      </div>
+    </div>
+  </div>
+</header>

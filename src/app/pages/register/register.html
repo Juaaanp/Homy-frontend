@@ -1,78 +1,189 @@
-<!DOCTYPE html>
-<html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>register</title>
-    </head>
-    <body>
-        <div class="container d-flex justify-content-center align-items-center my-5">
-            <div class="card p-5 shadow-lg border-0 rounded-4" style="max-width: 720px; width: 100%;">
-                <h3 class="fw-bold mb-2 text-center">Create your account</h3>
-                <p class="text-center text-muted mb-4">Join Homy to discover unique stays or host your property with
-                    confidence.</p>
-                <form>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label" for="name">Full name</label>
-                            <input class="form-control" type="text" name="name" id="name" placeholder="Your name">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="email">Email</label>
-                            <input class="form-control" type="email" placeholder="you@email.com">
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label" for="phone">Phone</label>
-                            <input class="form-control" type="text" name="phone" id="phone" placeholder="+57 3001234567">
-                        </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label" for="birthDate">Date of birth</label>
-                            <input class="form-control" type="date" name="birthDate" id="birthDate" placeholder="dd/mm/yyyy">
-                        </div>
+<div class="min-h-screen bg-white">
+    <app-header></app-header>
 
-                        <div class="col-md-6">
-                            <label class="form-label" for="password">Password</label>
-                            <input class="form-control" type="password" name="password" id="password" placeholder="At least 8 chars, 1 uppercase & 1 number">
-                            <p>Must include at least one uppercase letter an one number</p>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label" for="confirmPass">Confirm password</label>
-                            <input class="form-control" type="password" name="ConfirmPass" id="ConfirmPass"
-                            placeholder="Repeat your password">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Account role</label>
-                            <select class="form-select">
-                                <option>Guest</option>
-                                <option>Host</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label">Profile photo (optional)</label>
-                            <input type="file" class="form-control" />
-                        </div>
-
-
-                        <div class="form-check mt-4">
-                            <input type="checkbox" class="form-check-input" id="terms" />
-                            <label for="terms" class="form-check-label small">
-                            I agree to the <a href="#" class="text-warning text-decoration-none">Terms of Service</a> and
-                            <a href="#" class="text-warning text-decoration-none">Privacy Policy</a>.
-                            </label>
-                        </div>
-
-                        <button class="btn btn-warning text-white w-100 mt-4 py-2 fw-semibold">Create account</button>
-
-                        <p class="text-center mt-3 small">
-                        Already have an account? <a href="/login" class="text-warning fw-semibold">Sign in</a>
+    <main class="register-container">
+        <div class="register-card">
+            <div class="card-header">
+                        <h1 class="card-title">Create your account</h1>
+                        <p class="card-subtitle">
+                            Join our platform to discover unique stays or become a host.
                         </p>
-                    </div>
-                </form>
             </div>
+
+            <form class="register-form" (ngSubmit)="onSubmit($event)">
+                <!-- Personal data -->
+                <div class="form-grid">
+                    <label class="form-field">
+                        <span class="field-label">
+                            <lucide-icon name="user" class="field-icon"></lucide-icon>
+                            Full name
+                        </span>
+                            <input
+                                [(ngModel)]="fullName"
+                                name="fullName"
+                                placeholder="John Smith"
+                                class="field-input"
+                                [disabled]="loading"
+                            />
+                    </label>
+                    <label class="form-field">
+                        <span class="field-label">
+                            <lucide-icon name="mail" class="field-icon"></lucide-icon>
+                            Email
+                        </span>
+                        <input
+                            type="email"
+                            [(ngModel)]="email"
+                            name="email"
+                            placeholder="john@email.com"
+                            class="field-input"
+                            [disabled]="loading"
+                        />
+                    </label>
+                    <label class="form-field">
+                        <span class="field-label">
+                            <lucide-icon name="phone" class="field-icon"></lucide-icon>
+                            Phone
+                        </span>
+                        <input
+                            [(ngModel)]="phone"
+                            name="phone"
+                            placeholder="+1 555 123 4567"
+                            class="field-input"
+                            [disabled]="loading"
+                        />
+                    </label>
+                    <label class="form-field">
+                        <span class="field-label">
+                            <lucide-icon name="calendar" class="field-icon"></lucide-icon>
+                            Birthdate
+                        </span>
+                        <input
+                            type="date"
+                            [(ngModel)]="birthdate"
+                            name="birthdate"
+                            class="field-input"
+                            [disabled]="loading"
+                        />
+                    </label>
+                </div>
+
+                <!-- Passwords -->
+                <div class="form-grid">
+                    <label class="form-field">
+                        <span class="field-label">
+                            <lucide-icon name="lock" class="field-icon"></lucide-icon>
+                            Password
+                        </span>
+                        <div class="password-input-wrapper">
+                            <input
+                                [type]="showPw ? 'text' : 'password'"
+                                [(ngModel)]="password"
+                                name="password"
+                                placeholder="At least 8 characters, 1 uppercase and 1 number"
+                                class="field-input password-input"
+                                [disabled]="loading"
+                            />
+                            <button
+                                type="button"
+                                (click)="togglePasswordVisibility()"
+                                class="password-toggle-btn"
+                                [disabled]="loading"
+                            >
+                                <lucide-icon [name]="showPw ? 'eye-off' : 'eye'" class="toggle-icon"></lucide-icon>
+                            </button>
+                        </div>
+                    </label>
+                    <label class="form-field">
+                        <span class="field-label">Confirm password</span>
+                        <div class="password-input-wrapper">
+                            <input
+                                [type]="showPw2 ? 'text' : 'password'"
+                                [(ngModel)]="password2"
+                                name="password2"
+                                placeholder="Repeat your password"
+                                class="field-input password-input"
+                                [disabled]="loading"
+                            />
+                            <button
+                                type="button"
+                                (click)="togglePassword2Visibility()"
+                                class="password-toggle-btn"
+                                [disabled]="loading"
+                            >
+                                <lucide-icon [name]="showPw2 ? 'eye-off' : 'eye'" class="toggle-icon"></lucide-icon>
+                            </button>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Role -->
+                <label class="form-field">
+                    <span class="field-label">
+                        <lucide-icon name="user-cog" class="field-icon"></lucide-icon>
+                        Account role
+                    </span>
+                    <select
+                        [(ngModel)]="role"
+                        name="role"
+                        class="field-input"
+                        [disabled]="loading"
+                    >
+                        <option value="GUEST">User</option>
+                        <option value="HOST">Host</option>
+                    </select>
+                </label>
+
+                <!-- Checkbox -->
+                <label class="remember-checkbox">
+                    <input
+                        type="checkbox"
+                        [(ngModel)]="agree"
+                        name="agree"
+                        class="checkbox-input"
+                        [disabled]="loading"
+                    />
+                    <span class="checkbox-label">
+                        I accept the <a class="underline">Terms</a> and <a class="underline">Privacy Policy</a>.
+                    </span>
+                </label>
+
+                <!-- Messages -->
+                <div *ngIf="error" class="error-message">
+                    <lucide-icon name="shield-check" class="error-icon"></lucide-icon>
+                    <span>{{ error }}</span>
+                </div>
+                <div *ngIf="success" class="success-message">
+                    {{ success }}
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-footer-row">
+                    <div class="footer-login-link">
+                        Already have an account?
+                        <button
+                            type="button"
+                            class="register-link"
+                            (click)="navigateToLogin()"
+                            [disabled]="loading"
+                        >
+                            Sign in
+                        </button>
+                    </div>
+                    <div class="footer-create-btn">
+                        <app-button
+                            type="submit"
+                            [disabled]="loading"
+                            size="lg"
+                        >
+                            Create account
+                        </app-button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </body>
-</html>
+    </main>
+
+    <app-footer></app-footer>
+</div>

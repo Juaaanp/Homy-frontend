@@ -1,0 +1,22 @@
+<div *ngIf="active && payload?.length" [class]="'chart-tooltip ' + className">
+  <div class="tooltip-inner">
+    <div *ngIf="!hideLabel" class="tooltip-label">{{ getTooltipLabel(null) }}</div>
+    <div class="tooltip-list">
+      <div *ngFor="let item of payload; trackBy: trackByIndex" class="tooltip-item">
+        <ng-container *ngIf="formatter; else defaultItem">
+          <!-- formatter may return a string or template-like content; we support string -->
+          {{ formatter(item.value, item.name, item.payload, 0) }}
+        </ng-container>
+        <ng-template #defaultItem>
+          <div class="tooltip-indicator" *ngIf="!hideIndicator">
+            <div class="indicator-dot" [ngClass]="indicator" [style.backgroundColor]="item.color || item.payload?.fill"></div>
+          </div>
+          <div class="tooltip-body">
+            <div class="tooltip-name">{{ item.payload?.label || item.name }}</div>
+            <div class="tooltip-value" *ngIf="item.value !== undefined">{{ item.value | number }}</div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+.collapsible-content {
+  overflow: hidden;
+  transition: max-height 220ms ease, opacity 180ms ease;
+  opacity: 0;
+}
+.collapsible-content.open { opacity: 1; }
+.collapsible-inner { padding: 0.5rem 0; }

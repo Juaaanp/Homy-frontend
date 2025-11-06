@@ -1,0 +1,13 @@
+<div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary overflow-hidden"
+     [style.width]="getSizeValue()"
+     [style.height]="getSizeValue()"
+     role="img"
+     [attr.aria-label]="alt">
+  @if (src) {
+    <img class="img-fluid w-100 h-100" [style.object-fit]="'cover'" [src]="src!" [alt]="alt" />
+  } @else {
+    <div class="d-flex align-items-center justify-content-center w-100 h-100 fw-semibold">
+      <ng-content select="[slot=fallback]"></ng-content>
+    </div>
+  }
+</div>

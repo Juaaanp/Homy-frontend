@@ -1,0 +1,150 @@
+/* Sidebar Component Styles */
+
+/* Base sidebar colors */
+.bg-sidebar {
+  background-color: var(--bs-body-bg);
+}
+
+.text-sidebar-foreground {
+  color: var(--bs-body-color);
+}
+
+/* Utility classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Flexbox utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Hidden on mobile, visible on desktop */
+.hidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .md\:block {
+    display: block;
+  }
+  
+  .md\:flex {
+    display: flex;
+  }
+}
+
+/* Fixed positioning */
+.fixed {
+  position: fixed;
+}
+
+.inset-y-0 {
+  top: 0;
+  bottom: 0;
+}
+
+.left-0 {
+  left: 0;
+}
+
+.right-0 {
+  right: 0;
+}
+
+/* Z-index */
+.z-10 {
+  z-index: 10;
+}
+
+/* Height */
+.h-svh {
+  height: 100svh;
+}
+
+/* Transitions */
+.transition-\[left\,right\,width\] {
+  transition-property: left, right, width;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-\[width\] {
+  transition-property: width;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+.ease-linear {
+  transition-timing-function: linear;
+}
+
+/* Borders */
+.border-r {
+  border-right: 1px solid var(--bs-border-color);
+}
+
+.border-l {
+  border-left: 1px solid var(--bs-border-color);
+}
+
+/* Padding */
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-0 {
+  padding: 0;
+}
+
+/* Rounded */
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+/* Border for floating variant */
+.border {
+  border: 1px solid var(--bs-border-color);
+}
+
+/* Shadow */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Background transparent */
+.bg-transparent {
+  background-color: transparent;
+}
+
+/* Relative positioning */
+.relative {
+  position: relative;
+}
+
+/* Rotation */
+.rotate-180 {
+  transform: rotate(180deg);
+}

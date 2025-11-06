@@ -1,0 +1,2 @@
+/* Using Bootstrap badge classes; keep compact content layout */
+.badge-content { display: inline-flex; align-items: center; gap: 0.25rem; }

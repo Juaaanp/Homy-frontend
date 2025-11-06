@@ -1,0 +1,29 @@
+<section class="featured-section">
+  <div class="container">
+    <div class="featured-header">
+      <div>
+        <h2 class="featured-title">Featured accommodations</h2>
+        <p class="featured-subtitle">Discover the most popular places in Colombia</p>
+      </div>
+      <div class="featured-nav">
+        <app-button variant="outline" size="icon">
+          <lucide-icon name="chevron-left" class="icon"></lucide-icon>
+        </app-button>
+        <app-button variant="outline" size="icon">
+          <lucide-icon name="chevron-right" class="icon"></lucide-icon>
+        </app-button>
+      </div>
+    </div>
+    <div class="featured-grid">
+      <app-property-card
+        *ngFor="let property of featuredProperties"
+        [property]="property"
+      ></app-property-card>
+    </div>
+    <div class="featured-footer">
+      <app-button variant="outline" size="lg">
+        View more accommodations
+      </app-button>
+    </div>
+  </div>
+</section>

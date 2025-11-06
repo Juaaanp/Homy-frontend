@@ -1,0 +1,13 @@
+<select
+  [class]="hostClasses"
+  [disabled]="disabled"
+  [value]="value"
+  [attr.aria-invalid]="ariaInvalid"
+  [attr.data-size]="size"
+  [attr.data-placeholder]="!value ? true : null"
+  (change)="handleChange($event)"
+  (blur)="handleBlur()"
+>
+  <option value="" disabled selected hidden>{{ placeholder }}</option>
+  <ng-content></ng-content>
+</select>

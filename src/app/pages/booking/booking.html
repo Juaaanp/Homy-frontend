@@ -1,0 +1,315 @@
+<div class="min-h-screen bg-white">
+  <app-header></app-header>
+
+  <main class="main-container">
+    <!-- Stepper -->
+    <div class="stepper">
+      <div [class.stepper-badge-active]="step() >= 1" class="stepper-badge">
+        1. Dates & Guests
+      </div>
+      <div class="stepper-line"></div>
+      <div [class.stepper-badge-active]="step() >= 2" class="stepper-badge">
+        2. Guest details
+      </div>
+      <div class="stepper-line"></div>
+      <div [class.stepper-badge-active]="step() >= 3" class="stepper-badge">
+        3. Payment & confirm
+      </div>
+    </div>
+
+    <!-- Content grid -->
+    <div class="content-grid">
+      <div class="content-main">
+        <!-- STEP 1: Dates & Guests -->
+        <section *ngIf="step() === 1" class="card">
+          <h2 class="card-title">
+            <lucide-icon name="calendar" class="title-icon"></lucide-icon>
+            Dates & Guests
+          </h2>
+          <p class="card-subtitle">
+            Minimum 1 night · No past dates · Max capacity {{ MAX_GUESTS }} guests
+          </p>
+
+          <div class="form-grid">
+            <label class="form-label">
+              <span class="label-text">Check-in</span>
+              <input
+                type="date"
+                [min]="today"
+                [ngModel]="checkIn()"
+                (ngModelChange)="checkIn.set($event)"
+                class="form-input"
+              />
+            </label>
+
+            <label class="form-label">
+              <span class="label-text">Check-out</span>
+              <input
+                type="date"
+                [min]="checkIn() || today"
+                [ngModel]="checkOut()"
+                (ngModelChange)="checkOut.set($event)"
+                class="form-input"
+              />
+            </label>
+
+            <label class="form-label">
+              <span class="label-text">Guests</span>
+              <input
+                type="number"
+                [min]="1"
+                [max]="MAX_GUESTS"
+                [ngModel]="guests()"
+                (ngModelChange)="guests.set($event)"
+                class="form-input"
+              />
+            </label>
+          </div>
+
+          <div class="nights-info">
+            <span class="font-medium">{{ nights() }}</span>
+            night{{ nights() === 1 ? '' : 's' }} · ${{ NIGHTLY_PRICE }}/night
+          </div>
+
+          <div *ngIf="s1Error()" class="error-box">
+            <lucide-icon name="info" class="error-icon"></lucide-icon>
+            <span>{{ s1Error() }}</span>
+          </div>
+
+          <div class="button-row justify-end">
+            <app-button (click)="validateStep1()" class="btn-primary">
+              Continue
+              <lucide-icon name="arrow-right" class="btn-icon-right"></lucide-icon>
+            </app-button>
+          </div>
+        </section>
+
+        <!-- STEP 2: Guest Details -->
+        <section *ngIf="step() === 2" class="card">
+          <h2 class="card-title">Guest details</h2>
+          <p class="card-subtitle">
+            We'll share these with the host to coordinate your stay.
+          </p>
+
+          <div class="form-grid-2">
+            <label class="form-label">
+              <span class="label-text">Full name</span>
+              <input
+                type="text"
+                placeholder="John Doe"
+                [ngModel]="fullName()"
+                (ngModelChange)="fullName.set($event)"
+                class="form-input"
+              />
+            </label>
+
+            <label class="form-label">
+              <span class="label-text">Email</span>
+              <input
+                type="email"
+                placeholder="john@email.com"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                class="form-input"
+              />
+            </label>
+
+            <label class="form-label">
+              <span class="label-text">Phone</span>
+              <input
+                type="tel"
+                placeholder="+57 300 123 4567"
+                [ngModel]="phone()"
+                (ngModelChange)="phone.set($event)"
+                class="form-input"
+              />
+            </label>
+
+            <label class="form-label full-width">
+              <span class="label-text">Notes (optional)</span>
+              <textarea
+                placeholder="Any arrival details or requests for the host..."
+                [ngModel]="notes()"
+                (ngModelChange)="notes.set($event)"
+                class="form-input"
+                rows="3"
+              ></textarea>
+            </label>
+          </div>
+
+          <div *ngIf="s2Error()" class="error-box">
+            <lucide-icon name="info" class="error-icon"></lucide-icon>
+            <span>{{ s2Error() }}</span>
+          </div>
+
+          <div class="button-row">
+            <app-button variant="outline" (click)="goBack(1)">
+              <lucide-icon name="arrow-left" class="btn-icon-left"></lucide-icon>
+              Back
+            </app-button>
+            <app-button (click)="validateStep2()" class="btn-primary">
+              Continue
+              <lucide-icon name="arrow-right" class="btn-icon-right"></lucide-icon>
+            </app-button>
+          </div>
+        </section>
+
+        <!-- STEP 3: Payment & Confirmation -->
+        <section *ngIf="step() === 3" class="card">
+          <h2 class="card-title">
+            <lucide-icon name="credit-card" class="title-icon"></lucide-icon>
+            Payment (mock) & Confirmation
+          </h2>
+          <p class="card-subtitle">
+            This is a visual mock. Replace with your real checkout later.
+          </p>
+
+          <div *ngIf="!confirmed()">
+            <div class="form-grid-2">
+              <label class="form-label">
+                <span class="label-text">Name on card</span>
+                <input
+                  type="text"
+                  placeholder="John Doe"
+                  [ngModel]="cardName()"
+                  (ngModelChange)="cardName.set($event)"
+                  class="form-input"
+                />
+              </label>
+
+              <label class="form-label">
+                <span class="label-text">Card number</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="4242 4242 4242 4242"
+                  [ngModel]="cardNumber()"
+                  (ngModelChange)="cardNumber.set($event)"
+                  class="form-input"
+                />
+              </label>
+
+              <label class="form-label">
+                <span class="label-text">Expiry</span>
+                <input
+                  type="text"
+                  placeholder="MM/YY"
+                  [ngModel]="cardExp()"
+                  (ngModelChange)="cardExp.set($event)"
+                  class="form-input"
+                />
+              </label>
+
+              <label class="form-label">
+                <span class="label-text">CVC</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="123"
+                  [ngModel]="cardCvc()"
+                  (ngModelChange)="cardCvc.set($event)"
+                  class="form-input"
+                />
+              </label>
+            </div>
+
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [ngModel]="agree()"
+                (ngModelChange)="agree.set($event)"
+                class="checkbox-input"
+              />
+              <span>
+                I agree to the
+                <a class="link-orange">cancellation policy</a>
+                (free up to 48h before check-in) and the
+                <a class="link-orange">house rules</a>
+                (no parties; pets on request).
+              </span>
+            </label>
+
+            <div *ngIf="s3Error()" class="error-box">
+              <lucide-icon name="info" class="error-icon"></lucide-icon>
+              <span>{{ s3Error() }}</span>
+            </div>
+
+            <div class="button-row">
+              <app-button variant="outline" (click)="goBack(2)">
+                <lucide-icon name="arrow-left" class="btn-icon-left"></lucide-icon>
+                Back
+              </app-button>
+              <app-button (click)="confirmBooking()" class="btn-primary">
+                Confirm reservation
+                <lucide-icon name="check-circle-2" class="btn-icon-right"></lucide-icon>
+              </app-button>
+            </div>
+          </div>
+
+          <div *ngIf="confirmed()" class="success-box">
+            <div class="success-content">
+              <lucide-icon name="check-circle-2" class="success-icon"></lucide-icon>
+              <div>
+                <h3 class="success-title">Reservation confirmed!</h3>
+                <p class="success-text">
+                  We've sent a confirmation email with your reservation details and receipt.
+                </p>
+              </div>
+            </div>
+            <div class="success-details">
+              Check-in <strong>{{ checkIn() }}</strong> ·
+              Check-out <strong>{{ checkOut() }}</strong> ·
+              Guests <strong>{{ guests() }}</strong>
+            </div>
+            <div class="success-button">
+              <app-button (click)="navigateHome()" class="btn-primary">
+                Back to Home
+              </app-button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- SUMMARY SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-sticky">
+          <div class="summary-card">
+            <h3 class="summary-title">Price summary</h3>
+            <div class="summary-rows">
+              <div class="summary-row">
+                <span>${{ NIGHTLY_PRICE }} x {{ nights() }} night{{ nights() === 1 ? '' : 's' }}</span>
+                <span>${{ subtotal() }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Cleaning fee</span>
+                <span>${{ cleaningFee() }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Service fee</span>
+                <span>${{ serviceFee() }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Taxes</span>
+                <span>${{ taxes() }}</span>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-row summary-total">
+                <span>Total</span>
+                <span>${{ total() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-notice">
+            <lucide-icon name="shield" class="security-icon"></lucide-icon>
+            <p>
+              Your payment is processed securely. Hosts never see your full card details.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

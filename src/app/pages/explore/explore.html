@@ -1,0 +1,259 @@
+<div class="min-h-screen bg-gray-50">
+  <app-header></app-header>
+
+  <main class="explore-page">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="container">
+        <h1 class="hero-title">Explore Unique Stays in Colombia</h1>
+        <p class="hero-subtitle">Discover amazing accommodations across the most beautiful destinations</p>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="container">
+        <div class="search-card">
+          <div class="search-inputs">
+            <div class="search-input-group">
+              <lucide-icon name="map-pin" class="input-icon"></lucide-icon>
+              <input
+                type="text"
+                [(ngModel)]="searchLocation"
+                placeholder="Where do you want to go?"
+                class="search-input"
+              />
+            </div>
+
+            <div class="search-input-group">
+              <input
+                type="text"
+                [(ngModel)]="checkInOut"
+                placeholder="Check-in / Check-out"
+                class="search-input"
+                onfocus="(this.type='date')"
+                onblur="(this.type='text')"
+              />
+            </div>
+
+            <div class="search-input-group">
+              <input
+                type="text"
+                [(ngModel)]="guests"
+                placeholder="Guests"
+                class="search-input"
+              />
+            </div>
+
+            <button class="search-btn" (click)="searchProperties()">
+              <lucide-icon name="search"></lucide-icon>
+              Search
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-section">
+      <div class="container">
+        <div class="content-layout">
+          <!-- Filters Sidebar -->
+          <aside class="filters-sidebar" [class.show]="showFilters()">
+            <div class="filters-card">
+              <div class="filters-header">
+                <h3>Filters</h3>
+                <button class="clear-btn" (click)="clearFilters()">Clear all</button>
+              </div>
+
+              <!-- Price Range -->
+              <div class="filter-group">
+                <h4>Price range</h4>
+                <div class="price-slider">
+                  <input
+                    type="range"
+                    min="0"
+                    max="500"
+                    [(ngModel)]="priceRange"
+                    class="slider"
+                  />
+                  <div class="price-labels">
+                    <span>$0</span>
+                    <span>${{priceRange}}+</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Property Type -->
+              <div class="filter-group">
+                <h4>Property type</h4>
+                <div class="radio-group">
+                  <label *ngFor="let type of propertyTypes" class="radio-label">
+                    <input
+                      type="radio"
+                      name="propertyType"
+                      [value]="type"
+                      [(ngModel)]="propertyType"
+                    />
+                    <span>{{type}}</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Rating -->
+              <div class="filter-group">
+                <h4>Rating</h4>
+                <div class="radio-group">
+                  <label *ngFor="let rate of ratingOptions" class="radio-label">
+                    <input
+                      type="radio"
+                      name="rating"
+                      [value]="rate"
+                      [(ngModel)]="rating"
+                    />
+                    <div class="rating-stars">
+                      <lucide-icon
+                        *ngFor="let star of getStarArray(5)"
+                        name="star"
+                        [class.filled]="star < rate"
+                        class="star-icon"
+                      ></lucide-icon>
+                      <span>& up</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Bedrooms & Bathrooms -->
+              <div class="filter-grid">
+                <div class="filter-group">
+                  <h4>Bedrooms</h4>
+                  <select [(ngModel)]="bedrooms" class="filter-select">
+                    <option [value]="0">Any</option>
+                    <option [value]="1">1+</option>
+                    <option [value]="2">2+</option>
+                    <option [value]="3">3+</option>
+                    <option [value]="4">4+</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <h4>Bathrooms</h4>
+                  <select [(ngModel)]="bathrooms" class="filter-select">
+                    <option [value]="0">Any</option>
+                    <option [value]="1">1+</option>
+                    <option [value]="2">2+</option>
+                    <option [value]="3">3+</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Properties Grid -->
+          <div class="properties-content">
+            <!-- Results Header -->
+            <div class="results-header">
+              <div class="results-info">
+                <h2>{{properties.length}} properties found</h2>
+                <p>in Colombia</p>
+              </div>
+
+              <div class="results-controls">
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                  <button
+                    class="view-btn"
+                    [class.active]="viewMode() === 'grid'"
+                    (click)="toggleViewMode('grid')"
+                  >
+                    <lucide-icon name="grid"></lucide-icon>
+                  </button>
+                  <button
+                    class="view-btn"
+                    [class.active]="viewMode() === 'list'"
+                    (click)="toggleViewMode('list')"
+                  >
+                    <lucide-icon name="list"></lucide-icon>
+                  </button>
+                </div>
+
+                <!-- Mobile Filters Button -->
+                <button class="filters-toggle-btn" (click)="toggleFilters()">
+                  <lucide-icon name="sliders-horizontal"></lucide-icon>
+                  Filters
+                </button>
+
+                <!-- Sort Dropdown -->
+                <select [(ngModel)]="sortBy" class="sort-select">
+                  <option value="recommended">Sort by: Recommended</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Rating: Highest First</option>
+                  <option value="reviews">Most Reviewed</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Properties Grid/List -->
+            <div
+              class="properties-grid"
+              [class.list-view]="viewMode() === 'list'"
+            >
+              <div
+                *ngFor="let property of properties"
+                class="property-card"
+              >
+                <div class="property-image">
+                  <img [src]="property.imageUrl" [alt]="property.title" />
+                  <div *ngIf="property.isNew" class="new-badge">New</div>
+                  <div class="price-badge">${{property.price}}/night</div>
+                </div>
+                <div class="property-info">
+                  <div class="property-header">
+                    <h3 class="property-title">{{property.title}}</h3>
+                    <div class="property-rating">
+                      <lucide-icon name="star" class="star-filled"></lucide-icon>
+                      <span class="rating-value">{{property.rating}}</span>
+                      <span class="review-count">({{property.reviewCount}})</span>
+                    </div>
+                  </div>
+                  <div class="property-location">
+                    <lucide-icon name="map-pin"></lucide-icon>
+                    <span>{{property.location}}</span>
+                  </div>
+                  <div class="property-details">
+                    <span class="detail-item">
+                      <lucide-icon name="bed"></lucide-icon>
+                      {{property.bedrooms}} bed{{property.bedrooms > 1 ? 's' : ''}}
+                    </span>
+                    <span class="detail-item">
+                      <lucide-icon name="bath"></lucide-icon>
+                      {{property.bathrooms}} bath{{property.bathrooms > 1 ? 's' : ''}}
+                    </span>
+                  </div>
+                  <div class="property-actions">
+                    <button class="btn-view-details" (click)="viewProperty(property.id); $event.stopPropagation()">
+                      <lucide-icon name="eye"></lucide-icon>
+                      View Details
+                    </button>
+                    <button class="btn-book-now" (click)="bookProperty(property.id); $event.stopPropagation()">
+                      <lucide-icon name="calendar-check"></lucide-icon>
+                      Book Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="load-more">
+              <button class="load-more-btn">Load more properties</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

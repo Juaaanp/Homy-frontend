@@ -1,0 +1,20 @@
+<div class="accordion" role="region" aria-label="Accordion">
+  <ng-container *ngFor="let item of items; let i = index">
+    <div class="accordion-item">
+      <button
+        type="button"
+        class="accordion-trigger"
+        (click)="toggle(i)"
+        [attr.aria-expanded]="isOpen(i)">
+        <span class="title">{{ item.title }}</span>
+        <svg class="chev" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="accordion-content" [class.open]="isOpen(i)" [attr.aria-hidden]="!isOpen(i)">
+        <div class="content-inner" [innerHTML]="item.content"></div>
+      </div>
+    </div>
+  </ng-container>
+</div>

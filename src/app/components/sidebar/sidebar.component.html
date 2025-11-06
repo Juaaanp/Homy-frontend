@@ -1,0 +1,41 @@
+<!-- Non-collapsible sidebar -->
+<div *ngIf="isNonCollapsible" [class]="nonCollapsibleClasses">
+  <ng-content></ng-content>
+</div>
+
+<!-- Mobile Sheet -->
+<ng-container *ngIf="showMobileSheet">
+  <app-sheet-content
+    [attr.data-sidebar]="'sidebar'"
+    [attr.data-slot]="'sidebar'"
+    [attr.data-mobile]="'true'"
+    [side]="side"
+    [className]="'bg-sidebar text-sidebar-foreground w-[var(--sidebar-width)] p-0 [&>button]:hidden'"
+    [style.--sidebar-width]="sidebarService.SIDEBAR_WIDTH_MOBILE">
+    
+    <app-sheet-header class="sr-only">
+      <app-sheet-title>Sidebar</app-sheet-title>
+      <app-sheet-description>Displays the mobile sidebar.</app-sheet-description>
+    </app-sheet-header>
+    
+    <div class="flex h-full w-full flex-col">
+      <ng-content></ng-content>
+    </div>
+  </app-sheet-content>
+</ng-container>
+
+<!-- Desktop Sidebar -->
+<ng-container *ngIf="showDesktopSidebar">
+  <!-- Gap -->
+  <div [attr.data-slot]="'sidebar-gap'" [class]="gapClasses"></div>
+  
+  <!-- Container -->
+  <div [attr.data-slot]="'sidebar-container'" [class]="containerClasses">
+    <div
+      [attr.data-sidebar]="'sidebar'"
+      [attr.data-slot]="'sidebar-inner'"
+      [class]="innerClasses">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</ng-container>

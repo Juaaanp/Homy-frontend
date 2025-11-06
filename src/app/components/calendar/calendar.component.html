@@ -1,0 +1,30 @@
+<div class="calendar-root">
+  <div class="calendar-header">
+    <button class="nav" (click)="prevMonth()" aria-label="Previous month">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="caption">{{ formatMonth(month) }}</div>
+    <button class="nav" (click)="nextMonth()" aria-label="Next month">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+    </button>
+  </div>
+
+  <div class="calendar-body">
+    <div class="weekdays">
+      <div *ngFor="let w of weekdays()" class="weekday">{{ w }}</div>
+    </div>
+
+    <div class="weeks">
+      <div *ngFor="let week of weeks()" class="week">
+        <button *ngFor="let d of week" class="day"
+          [class.outside]="isOutside(d)"
+          [class.today]="isToday(d)"
+          [class.selected]="isSelected(d)"
+          [hidden]="!showOutsideDays && isOutside(d)"
+          (click)="selectDay(d)">
+          {{ d.getDate() }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

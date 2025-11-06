@@ -1,0 +1,8 @@
+<div [class]="hostClasses" role="alert" data-slot="alert">
+  <!-- optional leading icon projected from parent -->
+  <ng-content select="svg, .icon"></ng-content>
+
+  <div class="alert-body">
+    <ng-content></ng-content>
+  </div>
+</div>

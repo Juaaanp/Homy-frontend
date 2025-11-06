@@ -1,0 +1,9 @@
+.chart-tooltip { position: relative; z-index: 40; }
+.tooltip-inner { background: var(--background, #fff); border: 1px solid rgba(0,0,0,0.06); padding: 8px; border-radius: 8px; min-width: 8rem; box-shadow: 0 10px 30px rgba(2,6,23,0.08); font-size: 0.85rem; }
+.tooltip-label { font-weight: 600; margin-bottom: 6px; }
+.tooltip-list { display: grid; gap: 6px; }
+.tooltip-item { display: flex; gap: 8px; align-items: center; }
+.indicator-dot { width: 10px; height: 10px; border-radius: 2px; }
+.tooltip-body { display:flex; justify-content:space-between; flex:1; }
+.tooltip-name { color: var(--muted-foreground, #6b7280); }
+.tooltip-value { font-family: monospace; font-weight:600; }

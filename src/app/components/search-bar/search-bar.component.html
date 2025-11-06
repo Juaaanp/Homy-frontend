@@ -1,0 +1,57 @@
+<div class="search-bar-container">
+  <div class="search-bar-grid">
+  <!-- Destination -->
+    <div class="search-field">
+      <div class="search-field-content">
+        <lucide-icon name="map-pin" class="search-icon"></lucide-icon>
+        <div class="search-field-input-block">
+          <div class="search-field-label">Where to?</div>
+          <input 
+            type="text"
+            [(ngModel)]="destination"
+            placeholder="Search destinations" 
+            class="search-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Check-in -->
+    <div class="search-field">
+      <div class="search-field-content">
+        <lucide-icon name="calendar" class="search-icon"></lucide-icon>
+        <div class="search-field-input-block">
+          <div class="search-field-label">Check-in</div>
+          <div class="search-field-value">Add dates</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check-out -->
+    <div class="search-field">
+      <div class="search-field-content">
+        <lucide-icon name="calendar" class="search-icon"></lucide-icon>
+        <div class="search-field-input-block">
+          <div class="search-field-label">Check-out</div>
+          <div class="search-field-value">Add dates</div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Guests -->
+    <div class="search-field search-field-with-button">
+      <div class="search-field-flex">
+        <div class="search-field-content">
+          <lucide-icon name="users" class="search-icon"></lucide-icon>
+          <div class="search-field-input-block">
+            <div class="search-field-label">Guests</div>
+            <div class="search-field-value">How many?</div>
+          </div>
+        </div>
+        <app-button size="icon" class="search-submit-btn">
+          <lucide-icon name="search" class="search-submit-icon"></lucide-icon>
+        </app-button>
+      </div>
+    </div>
+  </div>
+</div>

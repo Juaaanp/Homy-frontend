@@ -1,0 +1,4 @@
+/* ResizablePanelGroup styles */
+:host {
+  display: flex;
+}

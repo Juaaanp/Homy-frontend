@@ -1,0 +1,127 @@
+/* Categories styles */
+.categories-section {
+  padding: 4rem 0;
+  background: #fff;
+}
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+.categories-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 1rem;
+}
+.categories-subtitle {
+  color: #666;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+.categories-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 640px) {
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.category-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+.category-card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.category-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.category-icon-wrapper {
+  padding: 0.75rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.category-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.category-count {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #888;
+}
+.category-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.5rem;
+  transition: color 0.2s;
+}
+.category-card:hover .category-name {
+  color: #F97316;
+}
+.category-description {
+  color: #666;
+  font-size: 0.95rem;
+}
+.bg-blue-50 {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.text-blue-600 {
+  color: #2563eb;
+}
+.bg-green-50 {
+  background: #ecfdf5;
+  color: #059669;
+}
+.text-green-600 {
+  color: #059669;
+}
+.bg-purple-50 {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+.text-purple-600 {
+  color: #7c3aed;
+}
+.bg-orange-50 {
+  background: #fff7ed;
+  color: #ea580c;
+}
+.text-orange-600 {
+  color: #ea580c;
+}
+.bg-cyan-50 {
+  background: #ecfeff;
+  color: #06b6d4;
+}
+.text-cyan-600 {
+  color: #06b6d4;
+}
+.bg-gray-50 {
+  background: #f9fafb;
+  color: #6b7280;
+}
+.text-gray-600 {
+  color: #6b7280;
+}

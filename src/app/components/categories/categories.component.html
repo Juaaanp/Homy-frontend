@@ -1,0 +1,35 @@
+<section class="categories-section">
+  <div class="container">
+    <div class="text-center mb-12">
+  <h2 class="categories-title">Explore by category</h2>
+      <p class="categories-subtitle">
+        Encuentra el tipo de alojamiento perfecto para tu viaje
+      </p>
+    </div>
+    <div class="categories-grid">
+      <ng-container *ngFor="let category of categories">
+        <div
+          class="category-card"
+          [ngClass]="category.color"
+          (click)="handleCategoryClick(category.id)"
+        >
+          <div class="category-card-header">
+            <div class="category-icon-wrapper">
+              <ng-container [ngSwitch]="category.id">
+                <lucide-icon name="building" *ngSwitchCase="'apartments'" class="category-icon"></lucide-icon>
+                <lucide-icon name="home" *ngSwitchCase="'houses'" class="category-icon"></lucide-icon>
+                <lucide-icon name="castle" *ngSwitchCase="'villas'" class="category-icon"></lucide-icon>
+                <lucide-icon name="tree-pine" *ngSwitchCase="'cabins'" class="category-icon"></lucide-icon>
+                <lucide-icon name="waves" *ngSwitchCase="'beachfront'" class="category-icon"></lucide-icon>
+                <lucide-icon name="mountain" *ngSwitchCase="'mountain'" class="category-icon"></lucide-icon>
+              </ng-container>
+            </div>
+            <span class="category-count">{{ category.count }}</span>
+          </div>
+          <h3 class="category-name">{{ category.name }}</h3>
+          <p class="category-description">{{ category.description }}</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</section>
