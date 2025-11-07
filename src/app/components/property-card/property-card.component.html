@@ -20,7 +20,7 @@
       <div class="property-rating-row">
         <lucide-icon name="star" class="property-star-icon"></lucide-icon>
         <span class="property-rating">{{ rating }}</span>
-        <span class="property-review">({{ reviewCount }})</span>
+        <span class="property-review">({{ displayReviewCount }})</span>
       </div>
     </div>
     <p class="property-location">{{ location }}</p>
@@ -29,21 +29,18 @@
       <span class="property-night">/ night</span>
     </div>
     <div class="property-actions">
-      <app-button 
-        variant="outline" 
-        size="sm" 
-        (click)="viewDetails()"
-        class="btn-view">
+      <button 
+        class="btn-view"
+        (click)="viewDetails()">
         <lucide-icon name="eye"></lucide-icon>
         View
-      </app-button>
-      <app-button 
-        size="sm" 
-        (click)="bookNow()"
-        class="btn-book">
+      </button>
+      <button 
+        class="btn-book"
+        (click)="bookNow()">
         <lucide-icon name="calendar-check"></lucide-icon>
         Book
-      </app-button>
+      </button>
     </div>
   </div>
 </div>

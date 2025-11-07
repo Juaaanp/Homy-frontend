@@ -17,4 +17,12 @@ export class HeaderComponent {
   navigate(path: string) {
     this.router.navigate([path]);
   }
+
+  isActive(path: string): boolean {
+    const url = this.router.url || '/';
+    if (path === '/') {
+      return url === '/';
+    }
+    return url.startsWith(path);
+  }
 }

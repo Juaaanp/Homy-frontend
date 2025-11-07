@@ -6,24 +6,33 @@
         <p class="featured-subtitle">Discover the most popular places in Colombia</p>
       </div>
       <div class="featured-nav">
-        <app-button variant="outline" size="icon">
-          <lucide-icon name="chevron-left" class="icon"></lucide-icon>
-        </app-button>
-        <app-button variant="outline" size="icon">
-          <lucide-icon name="chevron-right" class="icon"></lucide-icon>
-        </app-button>
+        <button class="nav-btn nav-prev" (click)="scrollLeft()">
+          <lucide-icon name="chevron-left"></lucide-icon>
+        </button>
+        <button class="nav-btn nav-next" (click)="scrollRight()">
+          <lucide-icon name="chevron-right"></lucide-icon>
+        </button>
       </div>
     </div>
     <div class="featured-grid">
       <app-property-card
         *ngFor="let property of featuredProperties"
         [property]="property"
+        [id]="property.id"
+        [title]="property.title"
+        [location]="property.location"
+        [price]="property.price"
+        [rating]="property.rating"
+        [reviews]="property.reviews"
+        [imageUrl]="property.imageUrl || property.images[0]"
+        [isNew]="property.isNew || false"
       ></app-property-card>
     </div>
     <div class="featured-footer">
-      <app-button variant="outline" size="lg">
+      <button class="view-more-btn">
         View more accommodations
-      </app-button>
+        <lucide-icon name="arrow-right"></lucide-icon>
+      </button>
     </div>
   </div>
 </section>

@@ -1,0 +1,180 @@
+<div class="min-h-screen bg-gray-50">
+  <app-header></app-header>
+
+  <main class="mb-container">
+    <!-- Header -->
+    <div class="mb-header">
+      <div>
+        <h1 class="mb-title">My Bookings</h1>
+        <p class="mb-subtitle">View and manage your reservations</p>
+      </div>
+      <div class="mb-stats">
+        <div class="stat-item">
+          <lucide-icon name="calendar-check" class="stat-icon"></lucide-icon>
+          <span class="stat-value">{{ upcomingCount() }}</span>
+          <span class="stat-label">Upcoming</span>
+        </div>
+        <div class="stat-item">
+          <lucide-icon name="check-circle" class="stat-icon"></lucide-icon>
+          <span class="stat-value">{{ completedCount() }}</span>
+          <span class="stat-label">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="mb-filters">
+      <button
+        class="filter-btn"
+        [class.active]="filter() === 'all'"
+        (click)="setFilter('all')">
+        All ({{ bookings().length }})
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="filter() === 'upcoming'"
+        (click)="setFilter('upcoming')">
+        <lucide-icon name="calendar" class="filter-icon"></lucide-icon>
+        Upcoming ({{ upcomingCount() }})
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="filter() === 'completed'"
+        (click)="setFilter('completed')">
+        <lucide-icon name="check" class="filter-icon"></lucide-icon>
+        Completed ({{ completedCount() }})
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="filter() === 'cancelled'"
+        (click)="setFilter('cancelled')">
+        <lucide-icon name="x-circle" class="filter-icon"></lucide-icon>
+        Cancelled ({{ cancelledCount() }})
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="mb-loading">
+      <lucide-icon name="loader-2" class="loading-icon"></lucide-icon>
+      <p>Loading your bookings...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && filteredBookings().length === 0" class="mb-empty">
+      <lucide-icon name="calendar-x" class="empty-icon"></lucide-icon>
+      <h3>No bookings found</h3>
+      <p>You don't have any {{ filter() === 'all' ? '' : filter() }} bookings yet.</p>
+      <app-button (click)="viewProperty('')" class="btn-explore">
+        <lucide-icon name="search" class="btn-icon"></lucide-icon>
+        Explore properties
+      </app-button>
+    </div>
+
+    <!-- Bookings List -->
+    <div *ngIf="!loading() && filteredBookings().length > 0" class="mb-list">
+      <div *ngFor="let booking of filteredBookings()" class="booking-card">
+        <div class="booking-image" (click)="viewProperty(booking.propertyId)">
+          <img [src]="booking.propertyImage" [alt]="booking.propertyTitle" />
+          <div class="status-badge" [ngClass]="getStatusBadgeClass(booking.status)">
+            {{ booking.status }}
+          </div>
+        </div>
+
+        <div class="booking-content">
+          <div class="booking-header">
+            <div>
+              <h3 class="booking-title" (click)="viewProperty(booking.propertyId)">
+                {{ booking.propertyTitle }}
+              </h3>
+              <div class="booking-location">
+                <lucide-icon name="map-pin" class="location-icon"></lucide-icon>
+                {{ booking.propertyLocation }}
+              </div>
+            </div>
+            <div class="booking-price">
+              <span class="price-label">Total</span>
+              <span class="price-value">${{ booking.totalPrice }}</span>
+            </div>
+          </div>
+
+          <div class="booking-details">
+            <div class="detail-item">
+              <lucide-icon name="calendar" class="detail-icon"></lucide-icon>
+              <div>
+                <span class="detail-label">Check-in</span>
+                <span class="detail-value">{{ formatDate(booking.checkIn) }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <lucide-icon name="calendar" class="detail-icon"></lucide-icon>
+              <div>
+                <span class="detail-label">Check-out</span>
+                <span class="detail-value">{{ formatDate(booking.checkOut) }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <lucide-icon name="moon" class="detail-icon"></lucide-icon>
+              <div>
+                <span class="detail-label">Duration</span>
+                <span class="detail-value">{{ calculateNights(booking.checkIn, booking.checkOut) }} nights</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <lucide-icon name="users" class="detail-icon"></lucide-icon>
+              <div>
+                <span class="detail-label">Guests</span>
+                <span class="detail-value">{{ booking.guests }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="booking-footer">
+            <div class="host-info">
+              <img [src]="booking.hostAvatar" [alt]="booking.hostName" class="host-avatar" />
+              <div>
+                <span class="host-label">Host</span>
+                <span class="host-name">{{ booking.hostName }}</span>
+              </div>
+            </div>
+
+            <div class="booking-actions">
+              <app-button
+                variant="outline"
+                size="sm"
+                (click)="viewProperty(booking.propertyId)">
+                <lucide-icon name="eye" class="action-icon"></lucide-icon>
+                View Property
+              </app-button>
+              <app-button
+                *ngIf="booking.status === 'upcoming'"
+                variant="outline"
+                size="sm"
+                [disabled]="cancelling() === booking.id"
+                (click)="cancelBooking(booking.id)"
+                class="btn-cancel">
+                <lucide-icon
+                  [name]="cancelling() === booking.id ? 'loader-2' : 'x-circle'"
+                  [class.spin]="cancelling() === booking.id"
+                  class="action-icon"></lucide-icon>
+                {{ cancelling() === booking.id ? 'Cancelling...' : 'Cancel' }}
+              </app-button>
+            </div>
+          </div>
+
+          <div class="booking-meta">
+            <span class="meta-item">
+              <lucide-icon name="calendar-days" class="meta-icon"></lucide-icon>
+              Booked on {{ formatDate(booking.bookingDate) }}
+            </span>
+            <span class="meta-item">
+              <lucide-icon name="hash" class="meta-icon"></lucide-icon>
+              {{ booking.confirmationCode }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

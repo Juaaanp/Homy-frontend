@@ -10,19 +10,19 @@
       </div>
       <!-- Navigation Desktop -->
       <nav class="header-nav">
-        <button (click)="navigate('/')" class="header-nav-btn">Home</button>
-        <button (click)="navigate('/explore')" class="header-nav-btn">Explore</button>
+        <button (click)="navigate('/')" class="header-nav-btn" [class.active]="isActive('/')">Home</button>
+        <button (click)="navigate('/explore')" class="header-nav-btn" [class.active]="isActive('/explore')">Explore</button>
       </nav>
       <!-- Actions -->
       <div class="header-actions">
-        <app-button variant="ghost" size="sm" class="header-list-btn">
+        <app-button variant="ghost" size="sm" class="header-list-btn" (click)="navigate('/host/list')">
           List your space
         </app-button>
-        <app-button variant="ghost" size="icon" class="header-heart-btn">
-          <lucide-icon name="heart" class="header-heart-icon"></lucide-icon>
+        <app-button variant="ghost" size="icon" class="header-heart-btn" (click)="navigate('/bookings')">
+          <lucide-icon name="calendar-check" class="header-heart-icon"></lucide-icon>
         </app-button>
         <div class="header-auth-flex">
-          <app-button variant="outline" size="sm" (click)="navigate('/login')">
+          <app-button variant="outline" size="sm" class="header-signin-btn" (click)="navigate('/login')">
             Sign in
           </app-button>
           <app-button size="sm" (click)="navigate('/register')" class="header-signup-btn">

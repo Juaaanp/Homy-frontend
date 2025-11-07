@@ -1,0 +1,209 @@
+<app-header></app-header>
+
+<div class="property-details-page">
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="loader"></div>
+      <p>Loading property...</p>
+    </div>
+  }
+
+  @if (!loading() && property()) {
+    <div class="property-container">
+      <!-- Back Button -->
+      <button class="back-button" (click)="goBack()">
+        <lucide-icon [img]="ChevronLeft" [strokeWidth]="2"></lucide-icon>
+        Back to Explore
+      </button>
+
+      <!-- Property Header -->
+      <div class="property-header">
+        <div class="header-left">
+          <h1>{{ property()?.title }}</h1>
+          <div class="property-meta">
+            <div class="rating">
+              <lucide-icon [img]="Star" [strokeWidth]="2"></lucide-icon>
+              <span>{{ property()?.rating }}</span>
+              <span class="reviews">({{ property()?.reviews }} reviews)</span>
+            </div>
+            <div class="location">
+              <lucide-icon [img]="MapPin" [strokeWidth]="2"></lucide-icon>
+              <span>{{ property()?.location }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn">
+            <lucide-icon [img]="Share2" [strokeWidth]="2"></lucide-icon>
+            Share
+          </button>
+          <button class="action-btn">
+            <lucide-icon [img]="Heart" [strokeWidth]="2"></lucide-icon>
+            Save
+          </button>
+        </div>
+      </div>
+
+      <!-- Image Gallery -->
+      <div class="image-gallery">
+        <div class="main-image">
+          <img [src]="currentImage()" [alt]="property()?.title">
+          <button class="nav-btn prev" (click)="previousImage()">
+            <lucide-icon [img]="ChevronLeft" [strokeWidth]="2"></lucide-icon>
+          </button>
+          <button class="nav-btn next" (click)="nextImage()">
+            <lucide-icon [img]="ChevronRight" [strokeWidth]="2"></lucide-icon>
+          </button>
+        </div>
+        <div class="thumbnails">
+          @for (image of property()?.images; track $index) {
+            <div class="thumbnail" 
+                 [class.active]="selectedImageIndex() === $index"
+                 (click)="selectImage($index)">
+              <img [src]="image" [alt]="'Photo ' + ($index + 1)">
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="content-grid">
+        <div class="main-content">
+          <!-- Property Info -->
+          <section class="info-section">
+            <h2>Property Details</h2>
+            <div class="specs">
+              <div class="spec-item">
+                <lucide-icon [img]="Users" [strokeWidth]="2"></lucide-icon>
+                <span>{{ property()?.guests }} guests</span>
+              </div>
+              <div class="spec-item">
+                <lucide-icon [img]="Bed" [strokeWidth]="2"></lucide-icon>
+                <span>{{ property()?.bedrooms }} bedrooms</span>
+              </div>
+              <div class="spec-item">
+                <lucide-icon [img]="Bath" [strokeWidth]="2"></lucide-icon>
+                <span>{{ property()?.bathrooms }} bathrooms</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="divider"></div>
+
+          <!-- Description -->
+          <section class="description-section">
+            <h3>About this place</h3>
+            <p>{{ property()?.description }}</p>
+          </section>
+
+          <div class="divider"></div>
+
+          <!-- Amenities -->
+          <section class="amenities-section">
+            <h3>What this place offers</h3>
+            <div class="amenities-grid">
+              @for (amenity of property()?.amenities; track amenity) {
+                <div class="amenity-item">
+                  <lucide-icon [img]="Wifi" [strokeWidth]="2"></lucide-icon>
+                  <span>{{ amenity }}</span>
+                </div>
+              }
+            </div>
+          </section>
+
+          <div class="divider"></div>
+
+          <!-- Location -->
+          <section class="location-section">
+            <h3>Location</h3>
+            <div class="location-info">
+              <lucide-icon [img]="MapPin" [strokeWidth]="2"></lucide-icon>
+              <div>
+                <p class="location-name">{{ property()?.location }}</p>
+                <p class="location-city">{{ property()?.city }}, {{ property()?.country }}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Booking Sidebar -->
+        <div class="booking-sidebar">
+          <div class="booking-card">
+            <div class="booking-header">
+              <div class="price">
+                <span class="amount">${{ property()?.price }}</span>
+                <span class="period">/ night</span>
+              </div>
+              <div class="rating">
+                <lucide-icon [img]="Star" [strokeWidth]="2"></lucide-icon>
+                <span>{{ property()?.rating }}</span>
+              </div>
+            </div>
+
+            <div class="booking-form">
+              <div class="date-group">
+                <div class="input-group">
+                  <label>Check-in</label>
+                  <input type="date" 
+                         [value]="checkInDate()" 
+                         (change)="checkInDate.set($any($event.target).value)"
+                         [min]="getTodayDate()">
+                </div>
+                <div class="input-group">
+                  <label>Check-out</label>
+                  <input type="date" 
+                         [value]="checkOutDate()" 
+                         (change)="checkOutDate.set($any($event.target).value)"
+                         [min]="checkInDate()">
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Guests</label>
+                <input type="number" 
+                       [value]="guests()" 
+                       (change)="guests.set(+$any($event.target).value)"
+                       [min]="1" 
+                       [max]="property()?.guests">
+              </div>
+
+              <button class="book-btn" (click)="bookNow()">Reserve</button>
+
+              @if (nights() > 0) {
+                <div class="price-breakdown">
+                  <div class="price-row">
+                    <span>${{ property()?.price }} x {{ nights() }} nights</span>
+                    <span>${{ subtotal() }}</span>
+                  </div>
+                  <div class="price-row">
+                    <span>Service fee</span>
+                    <span>${{ serviceFee() }}</span>
+                  </div>
+                  <div class="price-row">
+                    <span>Cleaning fee</span>
+                    <span>${{ cleaningFee() }}</span>
+                  </div>
+                  <div class="divider-sm"></div>
+                  <div class="price-row total">
+                    <span>Total</span>
+                    <span>${{ total() }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !property()) {
+    <div class="error-container">
+      <h2>Property not found</h2>
+      <p>The property you're looking for doesn't exist.</p>
+      <button class="back-btn" (click)="goBack()">Back to Explore</button>
+    </div>
+  }
+</div>
+
+<app-footer></app-footer>

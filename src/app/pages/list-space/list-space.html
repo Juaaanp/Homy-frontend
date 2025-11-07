@@ -1,0 +1,173 @@
+<div class="min-h-screen bg-white">
+  <app-header></app-header>
+
+  <main class="ls-container">
+    <div class="ls-header">
+      <h1 class="ls-title">List your space</h1>
+      <p class="ls-subtitle">Create a new listing in a few guided steps</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="ls-stepper">
+      <div class="ls-step" [class.active]="step() >= 1">1. Basic</div>
+      <div class="ls-line"></div>
+      <div class="ls-step" [class.active]="step() >= 2">2. Location</div>
+      <div class="ls-line"></div>
+      <div class="ls-step" [class.active]="step() >= 3">3. Pricing</div>
+      <div class="ls-line"></div>
+      <div class="ls-step" [class.active]="step() >= 4">4. Photos</div>
+      <div class="ls-line"></div>
+      <div class="ls-step" [class.active]="step() >= 5">5. Amenities</div>
+      <div class="ls-line"></div>
+      <div class="ls-step" [class.active]="step() >= 6">6. Review</div>
+    </div>
+
+    <div class="ls-grid">
+      <section class="ls-card" *ngIf="step() === 1">
+        <h2 class="ls-card-title">Basic information</h2>
+        <div class="ls-form">
+          <label class="ls-label">
+            <span>Title</span>
+            <input class="ls-input" type="text" placeholder="Cozy apartment in Medellín" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+          </label>
+          <label class="ls-label">
+            <span>Type</span>
+            <select class="ls-input" [ngModel]="type()" (ngModelChange)="type.set($event)">
+              <option>Apartment</option>
+              <option>House</option>
+              <option>Villa</option>
+              <option>Cabin</option>
+              <option>Loft</option>
+            </select>
+          </label>
+          <div class="ls-row">
+            <label class="ls-label">
+              <span>Guests</span>
+              <input class="ls-input" type="number" min="1" [ngModel]="guests()" (ngModelChange)="guests.set($event)" />
+            </label>
+            <label class="ls-label">
+              <span>Bedrooms</span>
+              <input class="ls-input" type="number" min="0" [ngModel]="bedrooms()" (ngModelChange)="bedrooms.set($event)" />
+            </label>
+            <label class="ls-label">
+              <span>Bathrooms</span>
+              <input class="ls-input" type="number" min="0" [ngModel]="bathrooms()" (ngModelChange)="bathrooms.set($event)" />
+            </label>
+          </div>
+          <div class="ls-error" *ngIf="!validBasic()">Please enter a title (6+ chars) and at least 1 guest.</div>
+        </div>
+        <div class="ls-actions">
+          <app-button (click)="next()" class="btn-orange">Continue</app-button>
+        </div>
+      </section>
+
+      <section class="ls-card" *ngIf="step() === 2">
+        <h2 class="ls-card-title">Location</h2>
+        <div class="ls-form">
+          <label class="ls-label">
+            <span>Country</span>
+            <input class="ls-input" type="text" [ngModel]="country()" (ngModelChange)="country.set($event)" />
+          </label>
+          <label class="ls-label">
+            <span>City</span>
+            <input class="ls-input" type="text" placeholder="Medellín" [ngModel]="city()" (ngModelChange)="city.set($event)" />
+          </label>
+          <label class="ls-label">
+            <span>Address</span>
+            <input class="ls-input" type="text" placeholder="Cra 1 # 2-34" [ngModel]="address()" (ngModelChange)="address.set($event)" />
+          </label>
+          <div class="ls-error" *ngIf="!validLocation()">Please provide city and address.</div>
+        </div>
+        <div class="ls-actions">
+          <app-button variant="outline" (click)="back()">Back</app-button>
+          <app-button (click)="next()" class="btn-orange">Continue</app-button>
+        </div>
+      </section>
+
+      <section class="ls-card" *ngIf="step() === 3">
+        <h2 class="ls-card-title">Pricing</h2>
+        <div class="ls-form">
+          <label class="ls-label">
+            <span>Price per night (USD)</span>
+            <input class="ls-input" type="number" min="1" [ngModel]="price()" (ngModelChange)="price.set($event)" />
+          </label>
+          <div class="ls-error" *ngIf="!validPricing()">Please set a valid price.</div>
+        </div>
+        <div class="ls-actions">
+          <app-button variant="outline" (click)="back()">Back</app-button>
+          <app-button (click)="next()" class="btn-orange">Continue</app-button>
+        </div>
+      </section>
+
+      <section class="ls-card" *ngIf="step() === 4">
+        <h2 class="ls-card-title">Photos</h2>
+        <div class="ls-form">
+          <div class="ls-photo-row">
+            <input class="ls-input flex-1" placeholder="Paste an image URL" [ngModel]="photoUrl()" (ngModelChange)="photoUrl.set($event)" />
+            <app-button (click)="addPhoto()">Add</app-button>
+          </div>
+          <div class="ls-photos">
+            <div class="ls-photo" *ngFor="let p of photos(); let i = index">
+              <img [src]="p" alt="photo" />
+              <button class="ls-remove" (click)="removePhoto(i)">Remove</button>
+            </div>
+          </div>
+          <div class="ls-error" *ngIf="!validPhotos()">Add at least one photo URL.</div>
+        </div>
+        <div class="ls-actions">
+          <app-button variant="outline" (click)="back()">Back</app-button>
+          <app-button (click)="next()" class="btn-orange">Continue</app-button>
+        </div>
+      </section>
+
+      <section class="ls-card" *ngIf="step() === 5">
+        <h2 class="ls-card-title">Amenities</h2>
+        <div class="ls-amenities">
+          <label class="ls-amenity" *ngFor="let a of amenityOptions">
+            <input type="checkbox" [checked]="amenities().includes(a)" (change)="toggleAmenity(a)" />
+            <span>{{ a }}</span>
+          </label>
+        </div>
+        <div class="ls-actions">
+          <app-button variant="outline" (click)="back()">Back</app-button>
+          <app-button (click)="next()" class="btn-orange">Continue</app-button>
+        </div>
+      </section>
+
+      <section class="ls-card" *ngIf="step() === 6">
+        <h2 class="ls-card-title">Review & publish</h2>
+        <div class="ls-review">
+          <div class="review-row"><span>Title</span><strong>{{ title() }}</strong></div>
+          <div class="review-row"><span>Type</span><strong>{{ type() }}</strong></div>
+          <div class="review-row"><span>Guests</span><strong>{{ guests() }}</strong></div>
+          <div class="review-row"><span>Bedrooms</span><strong>{{ bedrooms() }}</strong></div>
+          <div class="review-row"><span>Bathrooms</span><strong>{{ bathrooms() }}</strong></div>
+          <div class="review-row"><span>Location</span><strong>{{ address() }}, {{ city() }}, {{ country() }}</strong></div>
+          <div class="review-row"><span>Price</span><strong>${{ price() }}/night</strong></div>
+          <div class="review-row"><span>Amenities</span><strong>{{ amenities().join(', ') || '—' }}</strong></div>
+          <div class="review-photos">
+            <img *ngFor="let p of photos()" [src]="p" alt="photo" />
+          </div>
+        </div>
+
+        <div class="ls-actions">
+          <app-button variant="outline" (click)="back()">Back</app-button>
+          <app-button (click)="submit()" [disabled]="submitting()" class="btn-orange">
+            {{ submitting() ? 'Publishing…' : 'Publish listing' }}
+          </app-button>
+        </div>
+
+        <div class="ls-success" *ngIf="submitted()">
+          <lucide-icon name="check-circle-2"></lucide-icon>
+          <div>
+            <h3>Listing created!</h3>
+            <p>Your space is now ready. You can connect this to your backend later.</p>
+            <app-button (click)="goHome()" class="btn-orange">Back to Home</app-button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

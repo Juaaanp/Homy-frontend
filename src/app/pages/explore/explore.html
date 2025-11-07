@@ -204,7 +204,7 @@
                 class="property-card"
               >
                 <div class="property-image">
-                  <img [src]="property.imageUrl" [alt]="property.title" />
+                  <img [src]="property.imageUrl || property.images[0]" [alt]="property.title" />
                   <div *ngIf="property.isNew" class="new-badge">New</div>
                   <div class="price-badge">${{property.price}}/night</div>
                 </div>
@@ -214,7 +214,7 @@
                     <div class="property-rating">
                       <lucide-icon name="star" class="star-filled"></lucide-icon>
                       <span class="rating-value">{{property.rating}}</span>
-                      <span class="review-count">({{property.reviewCount}})</span>
+                      <span class="review-count">({{property.reviewCount || property.reviews}})</span>
                     </div>
                   </div>
                   <div class="property-location">
