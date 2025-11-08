@@ -1,0 +1,362 @@
+<div class="min-h-screen bg-gray-50">
+  <app-header></app-header>
+
+  <main class="up-container">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="up-loading">
+      <lucide-icon name="loader-2" class="loading-icon"></lucide-icon>
+      <p>Loading profile...</p>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!loading() && user()" class="up-content">
+      <!-- Profile Header -->
+      <div class="up-header-card">
+        <div class="up-header-content">
+          <div class="up-avatar-section">
+            <img [src]="user()!.avatar" [alt]="user()!.fullName" class="up-avatar" />
+            <div *ngIf="user()!.stats.verified" class="up-verified-badge">
+              <lucide-icon name="badge-check"></lucide-icon>
+              Verified
+            </div>
+          </div>
+          <div class="up-header-info">
+            <h1 class="up-name">{{ user()!.fullName }}</h1>
+            <p class="up-email">{{ user()!.email }}</p>
+            <div class="up-stats">
+              <div class="stat">
+                <lucide-icon name="calendar-check"></lucide-icon>
+                <span>{{ user()!.stats.totalBookings }} bookings</span>
+              </div>
+              <div class="stat">
+                <lucide-icon name="star"></lucide-icon>
+                <span>{{ user()!.stats.totalReviews }} reviews</span>
+              </div>
+              <div class="stat">
+                <lucide-icon name="clock"></lucide-icon>
+                <span>Member since {{ formatDate(user()!.stats.memberSince) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="up-header-actions">
+          <app-button variant="outline" size="sm" (click)="navigateToBookings()">
+            <lucide-icon name="calendar"></lucide-icon>
+            My Bookings
+          </app-button>
+          <app-button variant="outline" size="sm" (click)="navigateToListings()">
+            <lucide-icon name="home"></lucide-icon>
+            List Property
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="up-tabs">
+        <button
+          class="up-tab"
+          [class.active]="activeTab() === 'profile'"
+          (click)="setTab('profile')">
+          <lucide-icon name="user"></lucide-icon>
+          Profile
+        </button>
+        <button
+          class="up-tab"
+          [class.active]="activeTab() === 'preferences'"
+          (click)="setTab('preferences')">
+          <lucide-icon name="settings"></lucide-icon>
+          Preferences
+        </button>
+        <button
+          class="up-tab"
+          [class.active]="activeTab() === 'security'"
+          (click)="setTab('security')">
+          <lucide-icon name="shield"></lucide-icon>
+          Security
+        </button>
+      </div>
+
+      <!-- Profile Tab -->
+      <div *ngIf="activeTab() === 'profile'" class="up-section">
+        <!-- Personal Information -->
+        <div class="up-card">
+          <div class="up-card-header">
+            <h3>Personal Information</h3>
+            <button
+              *ngIf="!editingProfile()"
+              class="btn-edit"
+              (click)="startEditProfile()">
+              <lucide-icon name="pencil"></lucide-icon>
+              Edit
+            </button>
+          </div>
+
+          <div *ngIf="!editingProfile()" class="up-card-content">
+            <div class="info-row">
+              <span class="label">Full Name</span>
+              <span class="value">{{ user()!.fullName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Phone</span>
+              <span class="value">{{ user()!.phone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Bio</span>
+              <span class="value">{{ user()!.bio || 'No bio yet' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="editingProfile()" class="up-card-content">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input
+                type="text"
+                [(ngModel)]="editFullName"
+                class="form-input"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input
+                type="tel"
+                [(ngModel)]="editPhone"
+                class="form-input"
+                placeholder="+57 300 123 4567"
+              />
+            </div>
+            <div class="form-group">
+              <label>Bio</label>
+              <textarea
+                [(ngModel)]="editBio"
+                class="form-input"
+                rows="3"
+                placeholder="Tell us about yourself..."
+              ></textarea>
+            </div>
+            <div class="form-actions">
+              <app-button variant="outline" (click)="cancelEditProfile()">
+                Cancel
+              </app-button>
+              <app-button [disabled]="saving()" (click)="saveProfile()">
+                {{ saving() ? 'Saving...' : 'Save Changes' }}
+              </app-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="up-card">
+          <div class="up-card-header">
+            <h3>Address</h3>
+            <button
+              *ngIf="!editingAddress()"
+              class="btn-edit"
+              (click)="startEditAddress()">
+              <lucide-icon name="pencil"></lucide-icon>
+              Edit
+            </button>
+          </div>
+
+          <div *ngIf="!editingAddress()" class="up-card-content">
+            <div class="info-row">
+              <span class="label">Street</span>
+              <span class="value">{{ user()!.address.street }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">City</span>
+              <span class="value">{{ user()!.address.city }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Country</span>
+              <span class="value">{{ user()!.address.country }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Postal Code</span>
+              <span class="value">{{ user()!.address.postalCode }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="editingAddress()" class="up-card-content">
+            <div class="form-group">
+              <label>Street Address</label>
+              <input
+                type="text"
+                [(ngModel)]="editStreet"
+                class="form-input"
+              />
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>City</label>
+                <input
+                  type="text"
+                  [(ngModel)]="editCity"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label>Country</label>
+                <input
+                  type="text"
+                  [(ngModel)]="editCountry"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Postal Code</label>
+              <input
+                type="text"
+                [(ngModel)]="editPostalCode"
+                class="form-input"
+              />
+            </div>
+            <div class="form-actions">
+              <app-button variant="outline" (click)="cancelEditAddress()">
+                Cancel
+              </app-button>
+              <app-button [disabled]="saving()" (click)="saveAddress()">
+                {{ saving() ? 'Saving...' : 'Save Changes' }}
+              </app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferences Tab -->
+      <div *ngIf="activeTab() === 'preferences'" class="up-section">
+        <div class="up-card">
+          <div class="up-card-header">
+            <h3>Notifications</h3>
+          </div>
+          <div class="up-card-content">
+            <div class="pref-row">
+              <div class="pref-info">
+                <lucide-icon name="mail"></lucide-icon>
+                <div>
+                  <span class="pref-title">Email Notifications</span>
+                  <span class="pref-desc">Receive booking confirmations and updates</span>
+                </div>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  [checked]="user()!.preferences.notifications.email"
+                  (change)="toggleNotification('email')"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="pref-row">
+              <div class="pref-info">
+                <lucide-icon name="smartphone"></lucide-icon>
+                <div>
+                  <span class="pref-title">SMS Notifications</span>
+                  <span class="pref-desc">Get text messages for urgent updates</span>
+                </div>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  [checked]="user()!.preferences.notifications.sms"
+                  (change)="toggleNotification('sms')"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="pref-row">
+              <div class="pref-info">
+                <lucide-icon name="bell"></lucide-icon>
+                <div>
+                  <span class="pref-title">Push Notifications</span>
+                  <span class="pref-desc">Browser and mobile app notifications</span>
+                </div>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  [checked]="user()!.preferences.notifications.push"
+                  (change)="toggleNotification('push')"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="up-card">
+          <div class="up-card-header">
+            <h3>Regional Settings</h3>
+          </div>
+          <div class="up-card-content">
+            <div class="info-row">
+              <span class="label">Currency</span>
+              <span class="value">{{ user()!.preferences.currency }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Language</span>
+              <span class="value">{{ user()!.preferences.language === 'es' ? 'Spanish' : 'English' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Tab -->
+      <div *ngIf="activeTab() === 'security'" class="up-section">
+        <div class="up-card">
+          <div class="up-card-header">
+            <h3>Change Password</h3>
+          </div>
+          <div class="up-card-content">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input
+                type="password"
+                [(ngModel)]="currentPassword"
+                class="form-input"
+                placeholder="Enter current password"
+              />
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input
+                type="password"
+                [(ngModel)]="newPassword"
+                class="form-input"
+                placeholder="Enter new password (min 8 characters)"
+              />
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input
+                type="password"
+                [(ngModel)]="confirmPassword"
+                class="form-input"
+                placeholder="Confirm new password"
+              />
+            </div>
+
+            <div *ngIf="passwordError()" class="error-message">
+              <lucide-icon name="alert-circle"></lucide-icon>
+              {{ passwordError() }}
+            </div>
+
+            <div *ngIf="passwordSuccess()" class="success-message">
+              <lucide-icon name="check-circle"></lucide-icon>
+              Password changed successfully!
+            </div>
+
+            <div class="form-actions">
+              <app-button [disabled]="saving()" (click)="changePassword()">
+                {{ saving() ? 'Updating...' : 'Update Password' }}
+              </app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

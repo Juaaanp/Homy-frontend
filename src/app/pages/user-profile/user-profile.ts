@@ -1,0 +1,208 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { HeaderComponent } from '../../components/header/header.component';
+import { FooterComponent } from '../../components/footer/footer.component';
+import { ButtonComponent } from '../../components/button/button.component';
+import { UserService, User } from '../../services/user.service';
+
+type TabSection = 'profile' | 'preferences' | 'security';
+
+@Component({
+  selector: 'app-user-profile',
+  standalone: true,
+  imports: [CommonModule, FormsModule, LucideAngularModule, HeaderComponent, FooterComponent, ButtonComponent],
+  templateUrl: './user-profile.html',
+  styleUrls: ['./user-profile.css']
+})
+export class UserProfile implements OnInit {
+  loading = signal(true);
+  saving = signal(false);
+  user = signal<User | null>(null);
+  activeTab = signal<TabSection>('profile');
+  
+  // Edit mode flags
+  editingProfile = signal(false);
+  editingAddress = signal(false);
+  
+  // Password change
+  currentPassword = signal('');
+  newPassword = signal('');
+  confirmPassword = signal('');
+  passwordError = signal<string | null>(null);
+  passwordSuccess = signal(false);
+
+  // Temp edit values
+  editFullName = '';
+  editPhone = '';
+  editBio = '';
+  editStreet = '';
+  editCity = '';
+  editCountry = '';
+  editPostalCode = '';
+
+  constructor(
+    private router: Router,
+    private userService: UserService
+  ) {}
+
+  ngOnInit() {
+    this.loadUser();
+  }
+
+  loadUser() {
+    this.loading.set(true);
+    this.userService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.user.set(user);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading user:', err);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  setTab(tab: TabSection) {
+    this.activeTab.set(tab);
+  }
+
+  startEditProfile(): void {
+    const u = this.user();
+    if (!u) return;
+    this.editFullName = u.fullName;
+    this.editPhone = u.phone;
+    this.editBio = u.bio;
+    this.editingProfile.set(true);
+  }
+
+  cancelEditProfile() {
+    this.editingProfile.set(false);
+  }
+
+  saveProfile() {
+    this.saving.set(true);
+    const updates = {
+      fullName: this.editFullName,
+      phone: this.editPhone,
+      bio: this.editBio
+    };
+    
+    this.userService.updateProfile(updates).subscribe({
+      next: (updated) => {
+        this.user.set(updated);
+        this.editingProfile.set(false);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        console.error('Error updating profile:', err);
+        this.saving.set(false);
+      }
+    });
+  }
+
+  startEditAddress() {
+    const u = this.user();
+    if (!u) return;
+    this.editStreet = u.address.street;
+    this.editCity = u.address.city;
+    this.editCountry = u.address.country;
+    this.editPostalCode = u.address.postalCode;
+    this.editingAddress.set(true);
+  }
+
+  cancelEditAddress() {
+    this.editingAddress.set(false);
+  }
+
+  saveAddress() {
+    this.saving.set(true);
+    const updates = {
+      address: {
+        street: this.editStreet,
+        city: this.editCity,
+        country: this.editCountry,
+        postalCode: this.editPostalCode
+      }
+    };
+    
+    this.userService.updateProfile(updates).subscribe({
+      next: (updated) => {
+        this.user.set(updated);
+        this.editingAddress.set(false);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        console.error('Error updating address:', err);
+        this.saving.set(false);
+      }
+    });
+  }
+
+  toggleNotification(type: 'email' | 'sms' | 'push') {
+    const u = this.user();
+    if (!u) return;
+    
+    const newPrefs = { ...u.preferences.notifications };
+    newPrefs[type] = !newPrefs[type];
+    
+    this.userService.updateNotificationPreferences(newPrefs).subscribe({
+      next: () => {
+        const updated = { ...u };
+        updated.preferences.notifications = newPrefs;
+        this.user.set(updated);
+      }
+    });
+  }
+
+  changePassword() {
+    this.passwordError.set(null);
+    this.passwordSuccess.set(false);
+
+    if (!this.currentPassword() || !this.newPassword() || !this.confirmPassword()) {
+      this.passwordError.set('All fields are required');
+      return;
+    }
+
+    if (this.newPassword().length < 8) {
+      this.passwordError.set('New password must be at least 8 characters');
+      return;
+    }
+
+    if (this.newPassword() !== this.confirmPassword()) {
+      this.passwordError.set('Passwords do not match');
+      return;
+    }
+
+    this.saving.set(true);
+    this.userService.updatePassword(this.currentPassword(), this.newPassword()).subscribe({
+      next: () => {
+        this.passwordSuccess.set(true);
+        this.currentPassword.set('');
+        this.newPassword.set('');
+        this.confirmPassword.set('');
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.passwordError.set('Current password is incorrect');
+        this.saving.set(false);
+      }
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  navigateToBookings() {
+    this.router.navigate(['/bookings']);
+  }
+
+  navigateToListings() {
+    this.router.navigate(['/host/list']);
+  }
+}

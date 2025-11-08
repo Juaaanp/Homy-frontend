@@ -1,0 +1,487 @@
+/* Container */
+.up-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Loading State */
+.up-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.loading-icon {
+  width: 48px;
+  height: 48px;
+  color: #F97316;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Profile Header Card */
+.up-header-card {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.up-header-content {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.up-avatar-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.up-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #F97316;
+}
+
+.up-verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #16A34A;
+  font-weight: 500;
+}
+
+.up-verified-badge lucide-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.up-header-info {
+  flex: 1;
+}
+
+.up-name {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: #1F2937;
+}
+
+.up-email {
+  color: #6B7280;
+  margin: 0 0 1rem;
+}
+
+.up-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4B5563;
+  font-size: 0.875rem;
+}
+
+.stat lucide-icon {
+  width: 16px;
+  height: 16px;
+  color: #F97316;
+}
+
+.up-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.up-header-actions app-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.up-header-actions lucide-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Tabs */
+.up-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.up-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
+  transition: all 0.2s;
+}
+
+.up-tab lucide-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.up-tab:hover {
+  color: #F97316;
+  background: #FFF7ED;
+}
+
+.up-tab.active {
+  color: #F97316;
+  border-bottom-color: #F97316;
+}
+
+/* Section */
+.up-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Card */
+.up-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.up-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.up-card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1F2937;
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  background: #FAFAFA;
+  border-color: #F97316;
+  color: #F97316;
+}
+
+.btn-edit lucide-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.up-card-content {
+  padding: 1.5rem;
+}
+
+/* Info Rows */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row .label {
+  font-weight: 500;
+  color: #6B7280;
+  font-size: 0.875rem;
+}
+
+.info-row .value {
+  color: #1F2937;
+  text-align: right;
+  max-width: 60%;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1F2937;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #F97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9CA3AF;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #F3F4F6;
+}
+
+/* Preference Rows */
+.pref-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.pref-row:last-child {
+  border-bottom: none;
+}
+
+.pref-info {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.pref-info lucide-icon {
+  width: 20px;
+  height: 20px;
+  color: #F97316;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.pref-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pref-title {
+  font-weight: 500;
+  color: #1F2937;
+  font-size: 0.9375rem;
+}
+
+.pref-desc {
+  font-size: 0.8125rem;
+  color: #6B7280;
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #D1D5DB;
+  border-radius: 26px;
+  transition: all 0.3s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: #F97316;
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
+/* Messages */
+.error-message,
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.error-message {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.success-message {
+  background: #D1FAE5;
+  color: #16A34A;
+}
+
+.error-message lucide-icon,
+.success-message lucide-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .up-container {
+    padding: 1rem;
+  }
+
+  .up-header-card {
+    padding: 1.5rem;
+  }
+
+  .up-header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .up-name {
+    font-size: 1.5rem;
+  }
+
+  .up-stats {
+    justify-content: center;
+  }
+
+  .up-header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .up-header-actions app-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .up-tabs {
+    overflow-x: auto;
+  }
+
+  .up-tab {
+    white-space: nowrap;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .info-row .value {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions app-button {
+    width: 100%;
+  }
+}

@@ -7,6 +7,7 @@ import { BookingComponent } from '../pages/booking/booking';
 import { PropertyDetailsComponent } from '../pages/property-details/property-details';
 import { ListSpace } from '../pages/list-space/list-space';
 import { MyBookings } from '../pages/my-bookings/my-bookings';
+import { UserProfile } from '../pages/user-profile/user-profile';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -17,6 +18,7 @@ export const routes: Routes = [
     { path: 'booking', component: BookingComponent },
     { path: 'bookings', component: MyBookings },
     { path: 'host/list', component: ListSpace },
+    { path: 'profile', component: UserProfile },
     { path: '**', pathMatch: "full", redirectTo: "" }
 ];
 

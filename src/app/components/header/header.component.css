@@ -127,48 +127,63 @@
   gap: 0.75rem;
 }
 
-.header-list-btn {
+.header-actions .header-list-btn,
+.header-actions .header-list-btn.btn,
+.header-actions .header-list-btn.btn--ghost {
   display: none;
-  font-weight: 500;
-  color: #6B7280;
-  transition: all 0.2s;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 0.4rem 0.85rem;
-  background: white;
-  box-shadow: none;
+  font-weight: 500 !important;
+  color: #6B7280 !important;
+  transition: all 0.2s !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 8px !important;
+  padding: 0.4rem 0.85rem !important;
+  background: white !important;
+  box-shadow: none !important;
+  height: auto !important;
 }
 
-.header-list-btn:hover {
-  color: #F97316;
-  background: #FAFAFA;
-  border-color: #D1D5DB;
+.header-actions .header-list-btn:hover,
+.header-actions .header-list-btn.btn:hover,
+.header-actions .header-list-btn.btn--ghost:hover {
+  color: #F97316 !important;
+  background: #FAFAFA !important;
+  border-color: #D1D5DB !important;
+  transform: none !important;
 }
 
-.header-heart-btn {
+.header-actions .header-heart-btn,
+.header-actions .header-heart-btn.btn,
+.header-actions .header-heart-btn.btn--icon {
   display: none;
   position: relative;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  transition: all 0.2s;
-  background: white;
-  box-shadow: none;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 8px !important;
+  transition: all 0.2s !important;
+  background: white !important;
+  box-shadow: none !important;
+  height: auto !important;
+  width: auto !important;
+  padding: 0.4rem !important;
 }
 
-.header-heart-btn:hover {
-  background: #FAFAFA;
-  border-color: #D1D5DB;
+.header-actions .header-heart-btn:hover,
+.header-actions .header-heart-btn.btn:hover,
+.header-actions .header-heart-btn.btn--icon:hover {
+  background: #FAFAFA !important;
+  border-color: #D1D5DB !important;
+  transform: none !important;
 }
 
 .header-heart-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #6B7280;
-  transition: all 0.2s;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  color: #6B7280 !important;
+  transition: all 0.2s !important;
 }
 
-.header-heart-btn:hover .header-heart-icon {
-  color: #F97316;
+.header-heart-btn:hover .header-heart-icon,
+.header-heart-btn.btn:hover .header-heart-icon {
+  color: #F97316 !important;
 }
 
 .header-auth-flex {
@@ -178,7 +193,9 @@
 }
 
 /* Sign In Button Styles (use explicit class for reliability) */
-.header-signin-btn {
+.header-auth-flex .header-signin-btn,
+.header-auth-flex .header-signin-btn.btn,
+.header-auth-flex .header-signin-btn.btn--outline {
   border: 1px solid #E5E7EB !important;
   color: #6B7280 !important;
   font-weight: 500 !important;
@@ -187,16 +204,28 @@
   background: white !important;
   box-shadow: none !important;
   padding: 0.4rem 0.85rem !important;
+  height: auto !important;
 }
 
-.header-signin-btn:hover {
+.header-auth-flex .header-signin-btn:hover,
+.header-auth-flex .header-signin-btn.btn:hover,
+.header-auth-flex .header-signin-btn.btn--outline:hover {
   background: #FAFAFA !important;
   border-color: #D1D5DB !important;
   color: #374151 !important;
+  transform: none !important;
+}
+
+.header-auth-flex .header-signin-btn::before,
+.header-auth-flex .header-signin-btn.btn::before,
+.header-auth-flex .header-signin-btn.btn--outline::before {
+  display: none !important;
 }
 
 /* Sign Up Button Styles */
-.header-signup-btn {
+.header-auth-flex .header-signup-btn,
+.header-auth-flex .header-signup-btn.btn,
+.header-auth-flex .header-signup-btn.btn--default {
   background: #F97316 !important;
   color: #fff !important;
   border: none !important;
@@ -205,10 +234,26 @@
   transition: all 0.2s !important;
   box-shadow: none !important;
   padding: 0.4rem 0.85rem !important;
+  height: auto !important;
 }
 
-.header-signup-btn:hover {
+.header-auth-flex .header-signup-btn:hover,
+.header-auth-flex .header-signup-btn.btn:hover,
+.header-auth-flex .header-signup-btn.btn--default:hover {
   background: #EA580C !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.header-auth-flex .header-signup-btn::before,
+.header-auth-flex .header-signup-btn.btn::before,
+.header-auth-flex .header-signup-btn.btn--default::before {
+  display: none !important;
+}
+
+.header-signup-btn::before,
+.header-signup-btn.btn::before {
+  display: none !important;
 }
 
 .header-menu-btn {
