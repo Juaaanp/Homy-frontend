@@ -1,3 +1,7 @@
+<!--
+Componente de calendario que permite navegar entre meses, mostrar los días organizados por semanas y seleccionar una fecha. Incluye botones para cambiar el mes (prevMonth/nextMonth), encabezado con el nombre del mes (formatMonth), y cuerpo con los días obtenidos desde weeks() y weekdays(). Cada día se renderiza con estados visuales según si es el día actual (isToday), está seleccionado (isSelected) o pertenece fuera del mes (isOutside), con opción de ocultar días externos mediante showOutsideDays. Al hacer clic en un día se ejecuta selectDay(d). Este diseño facilita la interacción del usuario con el calendario mediante navegación, selección y estilo dinámico.
+-->
+
 <div class="calendar-root">
   <div class="calendar-header">
     <button class="nav" (click)="prevMonth()" aria-label="Previous month">
