@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 type AlertVariant = 'default' | 'destructive';
 
+
 @Component({
   selector: 'app-alert',
   standalone: true,
