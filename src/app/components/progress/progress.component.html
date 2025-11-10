@@ -1,3 +1,7 @@
+<!--
+Componente de barra de progreso accesible que utiliza atributos ARIA para indicar valores mínimo (min), máximo (max) y valor actual (clamped). El contenedor usa clases dinámicas mediante hostClasses y define el rol "progressbar". Dentro, un div interno con la clase "progress-indicator" representa el nivel de progreso visual mediante la propiedad CSS transform controlada por indicatorTransform, permitiendo animaciones y actualizaciones dinámicas del avance.
+-->
+
 <div
   [class]="hostClasses"
   role="progressbar"
