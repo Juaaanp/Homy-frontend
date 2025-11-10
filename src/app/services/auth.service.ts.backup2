@@ -1,0 +1,174 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { ResponseDTO } from '../models/response-dto';
+import { LoginDTO } from '../models/login-dto';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private http = inject(HttpClient);
+  private authURL = `${environment.apiUrl}/auth`;
+
+  constructor() { }
+
+  /**
+   * Login user with email and password
+   */
+  login(email: string, password: string): Observable<TokenResponse> {
+    return this.http.post<TokenResponse>(`${this.API_URL}/login`, { email, password })
+      .pipe(
+        tap(tokenResponse => {
+          // Store token and email immediately
+          const token = tokenResponse.accessToken;
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('user_email', email);
+          this.isAuthenticated.set(true);
+          
+          // Fetch user profile after login
+          this.fetchUserProfile().subscribe();
+        }),
+        catchError(this.handleAuthError)
+      );
+  }
+
+  /**
+   * Register new user
+   */
+  register(data: RegisterRequest): Observable<Usuario> {
+    return this.http.post<Usuario>(`${this.API_URL}/register`, data)
+      .pipe(
+        tap(user => {
+          // After registration, automatically login
+          this.login(data.email, data.password).subscribe();
+        }),
+        catchError(this.handleAuthError)
+      );
+  }
+
+  /**
+   * Request password reset code
+   */
+  requestPasswordReset(email: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/password-reset/request`, { email })
+      .pipe(catchError(this.handleAuthError));
+  }
+
+  /**
+   * Confirm password reset with code
+   */
+  confirmPasswordReset(email: string, code: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/password-reset/confirm`, { 
+      email, 
+      code, 
+      newPassword 
+    }).pipe(catchError(this.handleAuthError));
+  }
+
+  /**
+   * Fetch current user profile from backend
+   */
+  private fetchUserProfile(): Observable<Usuario> {
+    // After login, we need to fetch user data
+    // For now, we'll decode from token or make a GET call if endpoint exists
+    // Since backend doesn't have /auth/me, we'll store minimal info
+    return new Observable(observer => {
+      // TODO: Replace with actual user profile endpoint when available
+      const mockUser: Usuario = {
+        id: 1,
+        nombre: 'Usuario',
+        email: localStorage.getItem('user_email') || '',
+        telefono: '',
+        rol: 'Usuario',
+        fechaNacimiento: '',
+        creadoEn: new Date().toISOString()
+      };
+      this.currentUser.set(mockUser);
+      observer.next(mockUser);
+      observer.complete();
+    });
+  }
+
+  /**
+   * Logout user - clear token and redirect to login
+   */
+  logout(): void {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    this.currentUser.set(null);
+    this.isAuthenticated.set(false);
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Get stored JWT token
+   */
+  getToken(): string | null {
+    return localStorage.getItem('auth_token');
+  }
+
+  /**
+   * Get current user (reactive signal)
+   */
+  getCurrentUser() {
+    return this.currentUser.asReadonly();
+  }
+
+  /**
+   * Check if user is authenticated (reactive signal)
+   */
+  isLoggedIn() {
+    return this.isAuthenticated.asReadonly();
+  }
+
+  /**
+   * Update user profile data
+   */
+  updateUserProfile(userId: number, data: Partial<Usuario>): Observable<Usuario> {
+    return this.http.put<Usuario>(`${environment.apiUrl}/usuarios/${userId}`, data)
+      .pipe(
+        tap(user => this.currentUser.set(user)),
+        catchError(this.handleAuthError)
+      );
+  }
+
+  /**
+   * Private: Handle authentication errors
+   */
+  private handleAuthError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred during authentication';
+    
+    if (error.status === 401) {
+      errorMessage = 'Invalid email or password';
+    } else if (error.status === 400) {
+      errorMessage = error.error?.message || 'Invalid request data';
+    } else if (error.status === 409) {
+      errorMessage = 'Email already registered';
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to server';
+    }
+    
+    return throwError(() => new Error(errorMessage));
+  }
+
+  /**
+   * Private: Check if there's a stored auth token on initialization
+   */
+  private checkStoredAuth(): void {
+    const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('auth_user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
+      } catch (e) {
+        // Invalid stored data, clear it
+        this.logout();
+      }
+    }
+  }
+}

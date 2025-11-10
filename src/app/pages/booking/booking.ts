@@ -1,11 +1,13 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../components/button/button.component';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
+import { BookingService, BookingCreateDTO } from '../../services/booking.service';
+import { TokenService } from '../../services/token.service';
 
 type Step = 1 | 2 | 3;
 
@@ -26,10 +28,15 @@ const MAX_GUESTS = 4;
   templateUrl: './booking.html',
   styleUrls: ['./booking.css'],
 })
-export class BookingComponent {
+export class BookingComponent implements OnInit {
   // Constants
   readonly NIGHTLY_PRICE = NIGHTLY_PRICE;
   readonly MAX_GUESTS = MAX_GUESTS;
+
+  // Property and user data
+  propertyId = signal<number | null>(null);
+  userId = signal<number | null>(null);
+  submitting = signal(false);
 
   // Step management
   step = signal<Step>(1);
@@ -73,7 +80,39 @@ export class BookingComponent {
     this.subtotal() + this.cleaningFee() + this.serviceFee() + this.taxes()
   );
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private bookingService: BookingService,
+    private tokenService: TokenService
+  ) {}
+
+  ngOnInit(): void {
+    // Get propertyId from route params
+    this.route.queryParams.subscribe(params => {
+      const propertyId = params['propertyId'];
+      if (propertyId) {
+        this.propertyId.set(parseInt(propertyId));
+      }
+
+      // Get dates and guests from params if provided
+      if (params['checkIn']) this.checkIn.set(params['checkIn']);
+      if (params['checkOut']) this.checkOut.set(params['checkOut']);
+      if (params['guests']) this.guests.set(parseInt(params['guests']));
+    });
+
+    // Get userId from token
+    const userIdStr = this.tokenService.getUserId();
+    if (userIdStr) {
+      this.userId.set(parseInt(userIdStr));
+    } else {
+      // User not authenticated, redirect to login
+      alert('You must be logged in to make a booking');
+      this.router.navigate(['/login'], { 
+        queryParams: { returnUrl: '/booking' }
+      });
+    }
+  }
 
   toISODateInput(d: Date): string {
     return d.toISOString().slice(0, 10);
@@ -152,8 +191,64 @@ export class BookingComponent {
       this.s3Error.set('Please complete the payment details (mock).');
       return;
     }
+
+    // Validate we have required data
+    if (!this.propertyId() || !this.userId()) {
+      this.s3Error.set('Missing required booking information. Please try again.');
+      return;
+    }
+
+    // Check user role
+    const userRole = this.tokenService.getRole();
+    console.log('User role:', userRole);
+    console.log('User ID:', this.userId());
+    console.log('Property ID:', this.propertyId());
+
+    if (userRole !== 'GUEST') {
+      this.s3Error.set(`Only GUEST users can create bookings. Current role: ${userRole}. Please login with a GUEST account.`);
+      return;
+    }
+
     this.s3Error.set(null);
-    this.confirmed.set(true);
+    this.submitting.set(true);
+
+    // Prepare booking data
+    const bookingData: BookingCreateDTO = {
+      housingId: this.propertyId()!,
+      guestId: this.userId()!,
+      checkIn: this.checkIn(),
+      checkOut: this.checkOut(),
+      guestsNumber: this.guests(),
+      totalPrice: this.total()
+    };
+
+    console.log('Sending booking data:', bookingData);
+
+    // Send to backend
+    this.bookingService.createBooking(bookingData).subscribe({
+      next: (message) => {
+        console.log('Booking created:', message);
+        this.submitting.set(false);
+        this.confirmed.set(true);
+      },
+      error: (error) => {
+        console.error('Error creating booking:', error);
+        console.error('Error details:', error.error);
+        this.submitting.set(false);
+        
+        // Better error message
+        let errorMsg = 'Failed to create booking. ';
+        if (error.message) {
+          errorMsg += error.message;
+        } else if (error.error?.message) {
+          errorMsg += error.error.message;
+        } else if (error.error?.content?.message) {
+          errorMsg += error.error.content.message;
+        }
+        
+        this.s3Error.set(errorMsg);
+      }
+    });
   }
 
   goBack(targetStep: Step): void {

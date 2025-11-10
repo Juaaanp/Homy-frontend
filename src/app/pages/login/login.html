@@ -1,108 +1,124 @@
-<div class="min-h-screen bg-gray-50">
+<div class="bg-light min-vh-100">
   <app-header></app-header>
 
-  <main class="login-container">
-    <div class="login-card">
-      <!-- Card Header -->
-      <div class="card-header">
-          <h1 class="card-title">Sign in to Homy</h1>
-        <p class="card-subtitle">
-            Welcome back! Please enter your details.
-        </p>
-      </div>
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-3">
+          <div class="card-body p-4 p-md-5">
+            <!-- Card Header -->
+            <div class="text-center mb-4">
+              <h1 class="h3 fw-bold mb-2">Sign in to Homy</h1>
+              <p class="text-muted mb-0">Welcome back! Please enter your details.</p>
+            </div>
 
-      <!-- Login Form -->
-      <form class="login-form" (ngSubmit)="onSubmit($event)">
-        
-        <!-- Email Field -->
-        <label class="form-field">
-          <span class="field-label">
-            <lucide-icon name="mail" class="field-icon"></lucide-icon>
-              Email
-          </span>
-          <input
-            type="email"
-            [(ngModel)]="email"
-            name="email"
-            placeholder="your@email.com"
-            class="field-input"
-            [disabled]="loading"
-            autocomplete="email"
-          />
-        </label>
+            <!-- Login Form -->
+            <form (ngSubmit)="onSubmit($event)">
+              
+              <!-- Email Field -->
+              <div class="mb-3">
+                <label class="form-label d-flex align-items-center gap-2">
+                  <lucide-icon name="mail" [size]="16"></lucide-icon>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  placeholder="your@email.com"
+                  class="form-control"
+                  [disabled]="loading"
+                  autocomplete="email"
+                />
+              </div>
 
-        <!-- Password Field -->
-        <label class="form-field">
-          <span class="field-label">
-            <lucide-icon name="lock" class="field-icon"></lucide-icon>
-              Password
-          </span>
-          <div class="password-input-wrapper">
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              [(ngModel)]="password"
-              name="password"
-              placeholder="Your password"
-              class="field-input password-input"
-              [disabled]="loading"
-              autocomplete="current-password"
-            />
-            <button
-              type="button"
-              (click)="togglePasswordVisibility()"
-              class="password-toggle-btn"
-              [disabled]="loading"
-            >
-              <lucide-icon 
-                [name]="showPassword ? 'eye-off' : 'eye'" 
-                class="toggle-icon">
-              </lucide-icon>
-            </button>
+              <!-- Password Field -->
+              <div class="mb-3">
+                <label class="form-label d-flex align-items-center gap-2">
+                  <lucide-icon name="lock" [size]="16"></lucide-icon>
+                  Password
+                </label>
+                <div class="input-group">
+                  <input
+                    [type]="showPassword ? 'text' : 'password'"
+                    [(ngModel)]="password"
+                    name="password"
+                    placeholder="Your password"
+                    class="form-control"
+                    [disabled]="loading"
+                    autocomplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="btn btn-outline-secondary"
+                    [disabled]="loading"
+                  >
+                    <lucide-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Remember Me & Forgot Password -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="remember"
+                    name="remember"
+                    class="form-check-input"
+                    id="rememberCheck"
+                    [disabled]="loading"
+                  />
+                  <label class="form-check-label small" for="rememberCheck">
+                    Remember me
+                  </label>
+                </div>
+                
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm text-decoration-none p-0"
+                  (click)="navigateToForgotPassword()"
+                  [disabled]="loading"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              <!-- Error Message -->
+              <div *ngIf="error" class="alert alert-danger d-flex align-items-center" role="alert">
+                <lucide-icon name="shield-check" [size]="20" class="me-2"></lucide-icon>
+                <span>{{ error }}</span>
+              </div>
+
+              <!-- Submit Button -->
+              <app-button
+                type="submit"
+                [disabled]="loading"
+                size="lg"
+                class="w-100 mb-3"
+              >
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <lucide-icon *ngIf="!loading" name="log-in" [size]="18" class="me-2"></lucide-icon>
+                {{ loading ? 'Signing in...' : 'Sign in' }}
+              </app-button>
+
+              <!-- Footer Text -->
+              <p class="text-center text-muted small mb-0">
+                Don't have an account?
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm text-decoration-none p-0"
+                  (click)="navigateToRegister()"
+                  [disabled]="loading"
+                >
+                  Create one
+                </button>
+              </p>
+            </form>
           </div>
-        </label>
-
-        <!-- Remember Me Checkbox -->
-        <label class="remember-checkbox">
-          <input
-            type="checkbox"
-            [(ngModel)]="remember"
-            name="remember"
-            class="checkbox-input"
-            [disabled]="loading"
-          />
-          <span class="checkbox-label">Remember me on this device</span>
-        </label>
-
-        <!-- Error Message -->
-        <div *ngIf="error" class="error-message">
-          <lucide-icon name="shield-check" class="error-icon"></lucide-icon>
-          <span>{{ error }}</span>
         </div>
-
-        <!-- Submit Button -->
-        <app-button
-          type="submit"
-          [disabled]="loading"
-          size="lg"
-        >
-          <div *ngIf="loading" class="loading-spinner"></div>
-          <lucide-icon *ngIf="!loading" name="log-in" class="btn-icon"></lucide-icon>
-            {{ loading ? 'Signing in...' : 'Sign in' }}
-        </app-button>
-
-        <!-- Footer Text -->
-        <p class="form-footer">
-            Don't have an account?
-          <button
-            type="button"
-            class="register-link"
-            (click)="navigateToRegister()"
-            [disabled]="loading"
-          >
-              Create one
-          </button>
-        </p>
-      </form>
+      </div>
     </div>
   </main>
 

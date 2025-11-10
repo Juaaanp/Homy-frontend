@@ -1,0 +1,31 @@
+/* Verification Code specific styles */
+
+.form-control:focus {
+  border-color: #F97316;
+  box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+}
+
+.btn-link {
+  color: #F97316;
+  font-size: 0.9rem;
+}
+
+.btn-link:hover {
+  color: #EA580C;
+}
+
+.btn-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alert-info {
+  background-color: #FFF7ED;
+  border-color: #FDBA74;
+  color: #6B7280;
+  font-size: 0.9rem;
+}
+
+.alert-info strong {
+  color: #374151;
+}

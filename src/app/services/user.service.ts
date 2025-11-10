@@ -1,127 +1,252 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { ResponseDTO } from '../models/response-dto';
+import { TokenService } from './token.service';
 
+// Backend User interface (matches backend entity)
+export interface BackendUser {
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  role: string;
+  birthDate?: string;
+  profileImage?: string;
+}
+
+// Frontend User interface (for component compatibility with extended fields)
 export interface User {
   id: string;
-  email: string;
+  name: string;
   fullName: string;
+  email: string;
   phone: string;
+  role: string;
   avatar: string;
-  bio: string;
-  dateOfBirth: string;
-  address: {
+  birthDate?: string;
+  bio?: string;
+  address?: {
     street: string;
     city: string;
     country: string;
     postalCode: string;
   };
-  preferences: {
-    currency: string;
-    language: string;
+  stats?: {
+    verified: boolean;
+    totalBookings: number;
+    totalReviews: number;
+    memberSince: string;
+  };
+  preferences?: {
     notifications: {
       email: boolean;
       sms: boolean;
       push: boolean;
     };
+    currency: string;
+    language: string;
   };
-  stats: {
-    totalBookings: number;
-    totalReviews: number;
-    memberSince: string;
-    verified: boolean;
-  };
+}
+
+// DTO for updating user profile
+export interface UserUpdateDTO {
+  name: string;
+  phoneNumber: string;
+  profileImageUrl?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  // Simulated user data - ready to be replaced with HTTP calls
-  private currentUser = signal<User>({
-    id: 'user-1',
-    email: 'juan.perez@example.com',
-    fullName: 'Juan Pérez',
-    phone: '+57 300 123 4567',
-    avatar: 'https://i.pravatar.cc/150?img=33',
-    bio: 'Travel enthusiast and digital nomad. Love exploring new places and experiencing different cultures.',
-    dateOfBirth: '1995-06-15',
-    address: {
-      street: 'Calle 10 #5-25',
-      city: 'Medellín',
-      country: 'Colombia',
-      postalCode: '050001'
-    },
-    preferences: {
-      currency: 'USD',
-      language: 'es',
-      notifications: {
-        email: true,
-        sms: false,
-        push: true
-      }
-    },
-    stats: {
-      totalBookings: 12,
-      totalReviews: 8,
-      memberSince: '2023-03-15',
-      verified: true
-    }
-  });
+  private tokenService = inject(TokenService);
+  private http = inject(HttpClient);
+  private usersURL = `${environment.apiUrl}/users`;
 
-  constructor() {}
+  constructor() { }
 
-  // Simulate API call to get current user
-  getCurrentUser(): Observable<User> {
-    return of(this.currentUser()).pipe(delay(400));
-  }
-
-  // Simulate API call to update user profile
-  updateProfile(updates: Partial<User>): Observable<User> {
-    const updated = { ...this.currentUser(), ...updates };
-    this.currentUser.set(updated);
-    return of(updated).pipe(delay(600));
-  }
-
-  // Simulate API call to update avatar
-  updateAvatar(avatarUrl: string): Observable<string> {
-    const user = this.currentUser();
-    user.avatar = avatarUrl;
-    this.currentUser.set({ ...user });
-    return of(avatarUrl).pipe(delay(500));
-  }
-
-  // Simulate API call to update password
-  updatePassword(currentPassword: string, newPassword: string): Observable<boolean> {
-    // Mock validation - always succeeds in demo
-    return of(true).pipe(delay(600));
-  }
-
-  // Simulate API call to update notification preferences
-  updateNotificationPreferences(notifications: User['preferences']['notifications']): Observable<boolean> {
-    const user = this.currentUser();
-    user.preferences.notifications = notifications;
-    this.currentUser.set({ ...user });
-    return of(true).pipe(delay(400));
-  }
-
-  /* 
-   * READY FOR BACKEND INTEGRATION:
-   * Replace the methods above with actual HTTP calls like:
-   * 
-   * constructor(private http: HttpClient) {}
-   * 
-   * getCurrentUser(): Observable<User> {
-   *   return this.http.get<User>(`${API_URL}/user/me`);
-   * }
-   * 
-   * updateProfile(updates: Partial<User>): Observable<User> {
-   *   return this.http.patch<User>(`${API_URL}/user/me`, updates);
-   * }
-   * 
-   * updateAvatar(file: File): Observable<string> {
-   *   const formData = new FormData();
-   *   formData.append('avatar', file);
-   *   return this.http.post<string>(`${API_URL}/user/avatar`, formData);
-   * }
+  /**
+   * Get current logged-in user profile
    */
+  public getCurrentUser(): Observable<User> {
+    const userId = this.tokenService.getUserId();
+    const email = this.tokenService.getEmail();
+    
+    if (!userId) {
+      return of(this.getGuestUser());
+    }
+
+    return this.http.get<ResponseDTO>(`${this.usersURL}/${userId}`).pipe(
+      map((response: ResponseDTO) => {
+        if (!response.success || !response.content) {
+          return this.getDefaultUser(userId, email);
+        }
+        return this.mapToUser(response.content);
+      }),
+      catchError((error) => {
+        console.error('Error fetching user:', error);
+        return of(this.getDefaultUser(userId, email));
+      })
+    );
+  }
+
+  /**
+   * Update user profile (name, phone, profile image)
+   */
+  public updateProfile(updates: Partial<UserUpdateDTO>): Observable<User> {
+    const userId = this.tokenService.getUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    const dto: UserUpdateDTO = {
+      name: updates.name || '',
+      phoneNumber: updates.phoneNumber || '',
+      profileImageUrl: updates.profileImageUrl
+    };
+
+    return this.http.put<any>(`${this.usersURL}/${userId}`, dto).pipe(
+      map((response) => {
+        // Backend returns UserResponseDTO directly or wrapped in ResponseDTO
+        const userData = response.success ? response.content : response;
+        return this.mapToUser(userData);
+      }),
+      catchError((error) => {
+        console.error('Error updating profile:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Update notification preferences (future implementation)
+   */
+  public updateNotificationPreferences(preferences: any): Observable<any> {
+    // This would need a backend endpoint
+    console.warn('Notification preferences update not yet implemented in backend');
+    return of({ success: true });
+  }
+
+  /**
+   * Update password (future implementation - needs backend endpoint)
+   */
+  public updatePassword(currentPassword: string, newPassword: string): Observable<any> {
+    const userId = this.tokenService.getUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // This would need a backend endpoint like PUT /users/{id}/password
+    console.warn('Password update not yet implemented in backend');
+    return throwError(() => new Error('Password update endpoint not available'));
+  }
+
+  /**
+   * Get user by ID
+   */
+  public get(id: string): Observable<ResponseDTO> {
+    return this.http.get<ResponseDTO>(`${this.usersURL}/${id}`);
+  }
+
+  /**
+   * Legacy methods for compatibility
+   */
+  public create(createUserDTO: any): Observable<ResponseDTO> {
+    return this.http.post<ResponseDTO>(this.usersURL, createUserDTO);
+  }
+
+  public edit(editUserDTO: any): Observable<ResponseDTO> {
+    return this.http.put<ResponseDTO>(this.usersURL, editUserDTO);
+  }
+
+  public delete(id: string): Observable<ResponseDTO> {
+    return this.http.delete<ResponseDTO>(`${this.usersURL}/${id}`);
+  }
+
+  /**
+   * Helper methods
+   */
+  private mapToUser(data: BackendUser | any): User {
+    return {
+      id: data.id?.toString() || '',
+      name: data.name || '',
+      fullName: data.name || '',
+      email: data.email || '',
+      phone: data.phoneNumber || data.phone || '',
+      role: data.role || 'GUEST',
+      avatar: data.profileImage || 'https://i.pravatar.cc/150?img=' + (data.id % 70),
+      birthDate: data.birthDate,
+      bio: '', // Not in backend yet
+      address: {
+        street: '',
+        city: '',
+        country: '',
+        postalCode: ''
+      },
+      stats: {
+        verified: false,
+        totalBookings: 0,
+        totalReviews: 0,
+        memberSince: data.birthDate || new Date().toISOString()
+      },
+      preferences: {
+        notifications: {
+          email: true,
+          sms: false,
+          push: true
+        },
+        currency: 'COP',
+        language: 'es'
+      }
+    };
+  }
+
+  private getGuestUser(): User {
+    return {
+      id: '',
+      name: 'Guest',
+      fullName: 'Guest User',
+      email: '',
+      phone: '',
+      role: 'GUEST',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+      stats: {
+        verified: false,
+        totalBookings: 0,
+        totalReviews: 0,
+        memberSince: new Date().toISOString()
+      },
+      preferences: {
+        notifications: { email: true, sms: false, push: true },
+        currency: 'COP',
+        language: 'es'
+      }
+    };
+  }
+
+  private getDefaultUser(userId: string, email: string): User {
+    return {
+      id: userId,
+      name: email.split('@')[0] || 'User',
+      fullName: email.split('@')[0] || 'User',
+      email: email,
+      phone: '',
+      role: this.tokenService.getRole() || 'GUEST',
+      avatar: 'https://i.pravatar.cc/150?img=' + (parseInt(userId) % 70),
+      stats: {
+        verified: false,
+        totalBookings: 0,
+        totalReviews: 0,
+        memberSince: new Date().toISOString()
+      },
+      preferences: {
+        notifications: { email: true, sms: false, push: true },
+        currency: 'COP',
+        language: 'es'
+      }
+    };
+  }
 }

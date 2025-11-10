@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,11 +6,14 @@ import { LucideAngularModule } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { ButtonComponent } from '../../components/button/button.component';
+import { HousingService, CreateHousingDTO } from '../../services/housing.service';
+import { TokenService } from '../../services/token.service';
+import Swal from 'sweetalert2';
 
-// Minimal host "List your space" wizard (frontend-only mock)
-// Steps: 1 Basic -> 2 Location -> 3 Pricing -> 4 Photos -> 5 Amenities -> 6 Review
+// Host "List your space" wizard with backend integration
+// Steps: 1 Basic -> 2 Location -> 3 Pricing -> 4 Amenities -> 5 Review
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 @Component({
   selector: 'app-list-space',
@@ -19,13 +22,15 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6;
   templateUrl: './list-space.html',
   styleUrls: ['./list-space.css']
 })
-export class ListSpace {
+export class ListSpace implements OnInit {
   step = signal<Step>(1);
   submitting = signal(false);
   submitted = signal(false);
+  errorMessage = signal('');
 
   // Form state
   title = signal('');
+  description = signal('');
   type = signal('Apartment');
   guests = signal(2);
   bedrooms = signal(1);
@@ -34,34 +39,75 @@ export class ListSpace {
   country = signal('Colombia');
   city = signal('');
   address = signal('');
+  latitude = signal(0);
+  longitude = signal(0);
 
   price = signal(180);
 
-  photoUrl = signal('');
-  photos = signal<string[]>([]);
-
-  amenityOptions = ['WiFi','Kitchen','Air Conditioning','Parking','Washer','Pool','TV','Heating','Pet Friendly'];
+  // Backend only supports: WIFI, PARKING, POOL, GYM, PETS_ALLOWED, AIR_CONDITIONING, BREAKFAST_INCLUDED
+  amenityOptions = ['WiFi', 'Air Conditioning', 'Parking', 'Pool', 'Pet Friendly'];
   amenities = signal<string[]>([]);
 
   // Derived
   validBasic = computed(() => this.title().trim().length >= 6 && this.guests() >= 1);
   validLocation = computed(() => this.city().trim().length >= 2 && this.address().trim().length >= 6);
   validPricing = computed(() => this.price() > 0);
-  validPhotos = computed(() => this.photos().length >= 1);
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private housingService: HousingService,
+    private tokenService: TokenService
+  ) {}
 
-  addPhoto() {
-    const url = this.photoUrl().trim();
-    if (!url) return;
-    this.photos.set([ ...this.photos(), url ]);
-    this.photoUrl.set('');
-  }
+  ngOnInit() {
+    // Check if user is logged in and is HOST
+    if (!this.tokenService.isLogged()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Authentication Required',
+        text: 'Please login as a HOST to list your property',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/login']);
+      });
+      return;
+    }
 
-  removePhoto(i: number) {
-    const arr = [...this.photos()];
-    arr.splice(i,1);
-    this.photos.set(arr);
+    const role = this.tokenService.getRole();
+    const email = this.tokenService.getEmail();
+    const userId = this.tokenService.getUserId();
+    
+    console.log('DEBUG - User Info:', { role, email, userId });
+    
+    if (role !== 'HOST') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        html: `Only HOSTs can list properties.<br><br>
+               <strong>Your current role:</strong> ${role || 'undefined'}<br>
+               <strong>Email:</strong> ${email || 'undefined'}<br>
+               <strong>User ID:</strong> ${userId || 'undefined'}<br><br>
+               Please logout and login with a HOST account.<br><br>
+               <small>HOST credentials: juandal@gmail.com / Homy2024</small>`,
+        confirmButtonText: 'Logout Now',
+        showCancelButton: true,
+        cancelButtonText: 'Go Home',
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#6b7280',
+        width: '600px'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Logout user
+          this.tokenService.logout();
+          this.router.navigate(['/login']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      });
+    } else {
+      // User is HOST, allow access
+      console.log('✅ User is HOST, access granted');
+    }
   }
 
   toggleAmenity(a: string) {
@@ -74,7 +120,6 @@ export class ListSpace {
     if (this.step() === 1 && !this.validBasic()) return;
     if (this.step() === 2 && !this.validLocation()) return;
     if (this.step() === 3 && !this.validPricing()) return;
-    if (this.step() === 4 && !this.validPhotos()) return;
     this.step.set((this.step() + 1) as Step);
   }
 
@@ -83,12 +128,73 @@ export class ListSpace {
   }
 
   submit() {
-    // Mock submit - ready to replace by backend call later
     this.submitting.set(true);
-    setTimeout(() => {
-      this.submitting.set(false);
-      this.submitted.set(true);
-    }, 800);
+    this.errorMessage.set('');
+
+    // Build description from form data
+    const fullDescription = this.description() || 
+      `${this.type()} in ${this.city()}, ${this.country()}. ` +
+      `Accommodates ${this.guests()} guests with ${this.bedrooms()} bedroom(s) and ${this.bathrooms()} bathroom(s). ` +
+      `${this.amenities().length > 0 ? 'Amenities include: ' + this.amenities().join(', ') + '.' : ''}`;
+
+    // Create housing DTO
+    const housingData: CreateHousingDTO = {
+      title: this.title(),
+      description: fullDescription,
+      city: this.city(),
+      latitude: Number(this.latitude()) || 6.2442, // Default to Medellín if not set
+      length: Number(this.longitude()) || -75.5812, // Note: backend uses "length" not "longitude"
+      address: this.address(),
+      maxCapacity: Number(this.guests()),
+      pricePerNight: Number(this.price()),
+      services: this.housingService.mapAmenitiesToServices(this.amenities()),
+      imagesUrls: [] // Will be added when image upload is implemented
+    };
+
+    // Debug: Log data types and values
+    console.log('🔍 Housing data before sending:', {
+      title: `"${housingData.title}" (${typeof housingData.title})`,
+      description: `"${housingData.description}" (${typeof housingData.description})`,
+      city: `"${housingData.city}" (${typeof housingData.city})`,
+      latitude: `${housingData.latitude} (${typeof housingData.latitude})`,
+      length: `${housingData.length} (${typeof housingData.length})`,
+      address: `"${housingData.address}" (${typeof housingData.address})`,
+      maxCapacity: `${housingData.maxCapacity} (${typeof housingData.maxCapacity})`,
+      pricePerNight: `${housingData.pricePerNight} (${typeof housingData.pricePerNight})`,
+      services: housingData.services,
+      imagesUrls: housingData.imagesUrls
+    });
+    console.log('📤 Sending JSON:', JSON.stringify(housingData, null, 2));
+
+    this.housingService.createHousing(housingData).subscribe({
+      next: (response) => {
+        this.submitting.set(false);
+        this.submitted.set(true);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Property Listed!',
+          text: response.message || 'Your property has been successfully listed',
+          confirmButtonColor: '#f97316'
+        }).then(() => {
+          this.router.navigate(['/']);
+        });
+      },
+      error: (error) => {
+        this.submitting.set(false);
+        console.error('Error creating housing:', error);
+        
+        const errorMsg = error.error?.message || 'Failed to create property. Please try again.';
+        this.errorMessage.set(errorMsg);
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorMsg,
+          confirmButtonColor: '#f97316'
+        });
+      }
+    });
   }
 
   goHome() {

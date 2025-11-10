@@ -291,3 +291,17 @@
     display: none;
   }
 }
+
+.user-email {
+  font-size: 0.875rem;
+  color: #6B7280;
+  font-weight: 500;
+  padding: 0 0.75rem;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .user-email {
+    display: block;
+  }
+}

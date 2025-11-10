@@ -73,9 +73,9 @@ export class UserProfile implements OnInit {
   startEditProfile(): void {
     const u = this.user();
     if (!u) return;
-    this.editFullName = u.fullName;
+    this.editFullName = u.name || u.fullName || '';
     this.editPhone = u.phone;
-    this.editBio = u.bio;
+    this.editBio = u.bio ?? '';
     this.editingProfile.set(true);
   }
 
@@ -84,11 +84,24 @@ export class UserProfile implements OnInit {
   }
 
   saveProfile() {
+    if (!this.editFullName.trim() || !this.editPhone.trim()) {
+      this.passwordError.set('Name and phone are required');
+      return;
+    }
+
+    // Validate phone format (7-15 digits)
+    const phoneRegex = /^[0-9]{7,15}$/;
+    if (!phoneRegex.test(this.editPhone.replace(/\s+/g, ''))) {
+      this.passwordError.set('Phone must be 7-15 digits');
+      return;
+    }
+
     this.saving.set(true);
+    this.passwordError.set(null);
+
     const updates = {
-      fullName: this.editFullName,
-      phone: this.editPhone,
-      bio: this.editBio
+      name: this.editFullName.trim(),
+      phoneNumber: this.editPhone.replace(/\s+/g, '')
     };
     
     this.userService.updateProfile(updates).subscribe({
@@ -96,9 +109,12 @@ export class UserProfile implements OnInit {
         this.user.set(updated);
         this.editingProfile.set(false);
         this.saving.set(false);
+        this.passwordSuccess.set(true);
+        setTimeout(() => this.passwordSuccess.set(false), 3000);
       },
       error: (err) => {
         console.error('Error updating profile:', err);
+        this.passwordError.set(err.error?.message || 'Error updating profile');
         this.saving.set(false);
       }
     });
@@ -107,10 +123,10 @@ export class UserProfile implements OnInit {
   startEditAddress() {
     const u = this.user();
     if (!u) return;
-    this.editStreet = u.address.street;
-    this.editCity = u.address.city;
-    this.editCountry = u.address.country;
-    this.editPostalCode = u.address.postalCode;
+    this.editStreet = u.address?.street ?? '';
+    this.editCity = u.address?.city ?? '';
+    this.editCountry = u.address?.country ?? '';
+    this.editPostalCode = u.address?.postalCode ?? '';
     this.editingAddress.set(true);
   }
 
@@ -119,6 +135,12 @@ export class UserProfile implements OnInit {
   }
 
   saveAddress() {
+    // Address update not yet supported in backend
+    this.passwordError.set('Address updates are not yet available');
+    this.editingAddress.set(false);
+    
+    // TODO: Implement when backend supports address updates
+    /*
     this.saving.set(true);
     const updates = {
       address: {
@@ -140,11 +162,12 @@ export class UserProfile implements OnInit {
         this.saving.set(false);
       }
     });
+    */
   }
 
   toggleNotification(type: 'email' | 'sms' | 'push') {
     const u = this.user();
-    if (!u) return;
+    if (!u || !u.preferences) return;
     
     const newPrefs = { ...u.preferences.notifications };
     newPrefs[type] = !newPrefs[type];
@@ -152,7 +175,7 @@ export class UserProfile implements OnInit {
     this.userService.updateNotificationPreferences(newPrefs).subscribe({
       next: () => {
         const updated = { ...u };
-        updated.preferences.notifications = newPrefs;
+        updated.preferences!.notifications = newPrefs;
         this.user.set(updated);
       }
     });
@@ -187,13 +210,15 @@ export class UserProfile implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        this.passwordError.set('Current password is incorrect');
+        // Display specific error message from service
+        this.passwordError.set(err.message || 'Error al cambiar la contraseña');
         this.saving.set(false);
       }
     });
   }
 
-  formatDate(dateStr: string): string {
+  formatDate(dateStr: string | undefined): string {
+    if (!dateStr) return 'Unknown';
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }

@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gray-50">
   <app-header></app-header>
 
-  <main class="explore-page">
+  <main class="container-fluid py-4">
     <!-- Hero Section -->
     <div class="hero-section">
       <div class="container">
@@ -60,32 +60,33 @@
         <div class="content-layout">
           <!-- Filters Sidebar -->
           <aside class="filters-sidebar" [class.show]="showFilters()">
-            <div class="filters-card">
-              <div class="filters-header">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white">
                 <h3>Filters</h3>
                 <button class="clear-btn" (click)="clearFilters()">Clear all</button>
               </div>
 
               <!-- Price Range -->
-              <div class="filter-group">
+              <div class="mb-3">
                 <h4>Price range</h4>
                 <div class="price-slider">
                   <input
                     type="range"
                     min="0"
                     max="500"
-                    [(ngModel)]="priceRange"
+                    [ngModel]="priceRange()"
+                    (ngModelChange)="priceRange.set($event)"
                     class="slider"
                   />
                   <div class="price-labels">
                     <span>$0</span>
-                    <span>${{priceRange}}+</span>
+                    <span>${{ priceRange() }}+</span>
                   </div>
                 </div>
               </div>
 
               <!-- Property Type -->
-              <div class="filter-group">
+              <div class="mb-3">
                 <h4>Property type</h4>
                 <div class="radio-group">
                   <label *ngFor="let type of propertyTypes" class="radio-label">
@@ -93,15 +94,16 @@
                       type="radio"
                       name="propertyType"
                       [value]="type"
-                      [(ngModel)]="propertyType"
+                      [ngModel]="propertyType()"
+                      (ngModelChange)="propertyType.set($event)"
                     />
-                    <span>{{type}}</span>
+                    <span>{{ type }}</span>
                   </label>
                 </div>
               </div>
 
               <!-- Rating -->
-              <div class="filter-group">
+              <div class="mb-3">
                 <h4>Rating</h4>
                 <div class="radio-group">
                   <label *ngFor="let rate of ratingOptions" class="radio-label">
@@ -109,7 +111,8 @@
                       type="radio"
                       name="rating"
                       [value]="rate"
-                      [(ngModel)]="rating"
+                      [ngModel]="rating()"
+                      (ngModelChange)="rating.set($event)"
                     />
                     <div class="rating-stars">
                       <lucide-icon
@@ -126,9 +129,12 @@
 
               <!-- Bedrooms & Bathrooms -->
               <div class="filter-grid">
-                <div class="filter-group">
+                <div class="mb-3">
                   <h4>Bedrooms</h4>
-                  <select [(ngModel)]="bedrooms" class="filter-select">
+                  <select 
+                    [ngModel]="bedrooms()" 
+                    (ngModelChange)="bedrooms.set($event)"
+                    class="filter-select">
                     <option [value]="0">Any</option>
                     <option [value]="1">1+</option>
                     <option [value]="2">2+</option>
@@ -136,9 +142,12 @@
                     <option [value]="4">4+</option>
                   </select>
                 </div>
-                <div class="filter-group">
+                <div class="mb-3">
                   <h4>Bathrooms</h4>
-                  <select [(ngModel)]="bathrooms" class="filter-select">
+                  <select 
+                    [ngModel]="bathrooms()" 
+                    (ngModelChange)="bathrooms.set($event)"
+                    class="filter-select">
                     <option [value]="0">Any</option>
                     <option [value]="1">1+</option>
                     <option [value]="2">2+</option>
@@ -151,10 +160,16 @@
 
           <!-- Properties Grid -->
           <div class="properties-content">
+            <!-- Loading State -->
+            <div *ngIf="loading()" class="loading-state" style="text-align: center; padding: 3rem;">
+              <lucide-icon name="loader-2" class="animate-spin" style="width: 48px; height: 48px; color: #f97316; margin: 0 auto 1rem;"></lucide-icon>
+              <p style="color: #6b7280; font-size: 1.125rem;">Loading properties...</p>
+            </div>
+
             <!-- Results Header -->
-            <div class="results-header">
+            <div class="results-header" *ngIf="!loading()">
               <div class="results-info">
-                <h2>{{properties.length}} properties found</h2>
+                <h2>{{ propertyCount() }} properties found</h2>
                 <p>in Colombia</p>
               </div>
 
@@ -184,7 +199,10 @@
                 </button>
 
                 <!-- Sort Dropdown -->
-                <select [(ngModel)]="sortBy" class="sort-select">
+                <select 
+                  [ngModel]="sortBy()" 
+                  (ngModelChange)="sortBy.set($event)"
+                  class="sort-select">
                   <option value="recommended">Sort by: Recommended</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
@@ -194,13 +212,25 @@
               </div>
             </div>
 
+            <!-- No Results Message -->
+            <div *ngIf="!loading() && propertyCount() === 0" class="no-results">
+              <lucide-icon name="search-x" class="no-results-icon"></lucide-icon>
+              <h3>No properties found</h3>
+              <p>Try adjusting your filters or search criteria</p>
+              <button class="btn-clear-filters" (click)="clearFilters()">
+                <lucide-icon name="refresh-ccw"></lucide-icon>
+                Clear All Filters
+              </button>
+            </div>
+
             <!-- Properties Grid/List -->
             <div
+              *ngIf="!loading() && propertyCount() > 0"
               class="properties-grid"
               [class.list-view]="viewMode() === 'list'"
             >
               <div
-                *ngFor="let property of properties"
+                *ngFor="let property of filteredProperties()"
                 class="property-card"
               >
                 <div class="property-image">
@@ -224,11 +254,11 @@
                   <div class="property-details">
                     <span class="detail-item">
                       <lucide-icon name="bed"></lucide-icon>
-                      {{property.bedrooms}} bed{{property.bedrooms > 1 ? 's' : ''}}
+                      {{property.bedrooms ?? 2}} bed{{(property.bedrooms ?? 2) > 1 ? 's' : ''}}
                     </span>
                     <span class="detail-item">
                       <lucide-icon name="bath"></lucide-icon>
-                      {{property.bathrooms}} bath{{property.bathrooms > 1 ? 's' : ''}}
+                      {{property.bathrooms ?? 1}} bath{{(property.bathrooms ?? 1) > 1 ? 's' : ''}}
                     </span>
                   </div>
                   <div class="property-actions">

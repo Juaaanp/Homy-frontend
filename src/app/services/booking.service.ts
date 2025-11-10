@@ -1,6 +1,21 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map, catchError, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { ResponseDTO } from '../models/response-dto';
+import { TokenService } from './token.service';
 
+// DTO for creating a booking (matches backend BookingCreateDTO)
+export interface BookingCreateDTO {
+  housingId: number;
+  guestId: number;
+  checkIn: string; // LocalDate format: YYYY-MM-DD
+  checkOut: string; // LocalDate format: YYYY-MM-DD
+  guestsNumber: number;
+  totalPrice: number;
+}
+
+// Frontend interface for UserBooking (for component compatibility)
 export interface UserBooking {
   id: string;
   propertyId: string;
@@ -18,120 +33,120 @@ export interface UserBooking {
   hostAvatar: string;
 }
 
+// Backend BookingSummaryDTO (from backend)
+export interface BookingSummaryDTO {
+  id: number;
+  checkIn: string;
+  checkOut: string;
+  guestsNumber: number;
+  totalPrice: number;
+  status: string;
+  housingId: number;
+  guestId: number;
+  createdAt?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
-  // Simulated bookings - ready to be replaced with HTTP calls
-  private bookings = signal<UserBooking[]>([
-    {
-      id: 'b1',
-      propertyId: '1',
-      propertyTitle: 'Luxury Beachfront Villa',
-      propertyImage: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-      propertyLocation: 'Malibu Beach, California',
-      checkIn: '2025-12-15',
-      checkOut: '2025-12-20',
-      guests: 4,
-      totalPrice: 2475,
-      status: 'upcoming',
-      bookingDate: '2025-11-01',
-      confirmationCode: 'HOMY-B1-2025',
-      hostName: 'Sarah Johnson',
-      hostAvatar: 'https://i.pravatar.cc/150?img=5'
-    },
-    {
-      id: 'b2',
-      propertyId: '2',
-      propertyTitle: 'Modern Downtown Apartment',
-      propertyImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-      propertyLocation: 'Downtown, New York',
-      checkIn: '2025-11-20',
-      checkOut: '2025-11-25',
-      guests: 2,
-      totalPrice: 990,
-      status: 'upcoming',
-      bookingDate: '2025-10-28',
-      confirmationCode: 'HOMY-B2-2025',
-      hostName: 'Michael Chen',
-      hostAvatar: 'https://i.pravatar.cc/150?img=12'
-    },
-    {
-      id: 'b3',
-      propertyId: '3',
-      propertyTitle: 'Cozy Mountain Cabin',
-      propertyImage: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=800',
-      propertyLocation: 'Aspen, Colorado',
-      checkIn: '2025-09-10',
-      checkOut: '2025-09-15',
-      guests: 6,
-      totalPrice: 1210,
-      status: 'completed',
-      bookingDate: '2025-08-15',
-      confirmationCode: 'HOMY-B3-2025',
-      hostName: 'Emily Thompson',
-      hostAvatar: 'https://i.pravatar.cc/150?img=9'
-    },
-    {
-      id: 'b4',
-      propertyId: '1',
-      propertyTitle: 'Luxury Beachfront Villa',
-      propertyImage: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-      propertyLocation: 'Malibu Beach, California',
-      checkIn: '2025-07-01',
-      checkOut: '2025-07-05',
-      guests: 3,
-      totalPrice: 1980,
-      status: 'cancelled',
-      bookingDate: '2025-06-10',
-      confirmationCode: 'HOMY-B4-2025',
-      hostName: 'Sarah Johnson',
-      hostAvatar: 'https://i.pravatar.cc/150?img=5'
-    }
-  ]);
+  private http = inject(HttpClient);
+  private tokenService = inject(TokenService);
+  private bookingsURL = `${environment.apiUrl}/bookings`;
 
-  constructor() {}
+  constructor() { }
 
-  // Simulate API call to get user bookings
-  getUserBookings(): Observable<UserBooking[]> {
-    return of(this.bookings()).pipe(delay(400));
-  }
-
-  // Simulate API call to get a specific booking
-  getBookingById(id: string): Observable<UserBooking | undefined> {
-    const booking = this.bookings().find(b => b.id === id);
-    return of(booking).pipe(delay(300));
-  }
-
-  // Simulate API call to cancel a booking
-  cancelBooking(id: string): Observable<boolean> {
-    const bookings = this.bookings();
-    const index = bookings.findIndex(b => b.id === id);
-    if (index !== -1) {
-      bookings[index].status = 'cancelled';
-      this.bookings.set([...bookings]);
-    }
-    return of(true).pipe(delay(500));
-  }
-
-  // Helper to filter by status
-  getBookingsByStatus(status: 'upcoming' | 'completed' | 'cancelled'): Observable<UserBooking[]> {
-    const filtered = this.bookings().filter(b => b.status === status);
-    return of(filtered).pipe(delay(300));
-  }
-
-  /* 
-   * READY FOR BACKEND INTEGRATION:
-   * Replace the methods above with actual HTTP calls like:
-   * 
-   * constructor(private http: HttpClient) {}
-   * 
-   * getUserBookings(): Observable<UserBooking[]> {
-   *   return this.http.get<UserBooking[]>(`${API_URL}/user/bookings`);
-   * }
-   * 
-   * cancelBooking(id: string): Observable<boolean> {
-   *   return this.http.post<boolean>(`${API_URL}/bookings/${id}/cancel`, {});
-   * }
+  /**
+   * Create a new booking
+   * POST /bookings
    */
+  public createBooking(bookingData: BookingCreateDTO): Observable<string> {
+    return this.http.post<ResponseDTO>(this.bookingsURL, bookingData).pipe(
+      map((response: ResponseDTO) => {
+        if (!response.success) {
+          throw new Error(response.content || 'Failed to create booking');
+        }
+        return response.content || 'Booking created successfully';
+      }),
+      catchError((error) => {
+        console.error('Error creating booking:', error);
+        const message = error.error?.content || error.error?.message || 'Failed to create booking';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  /**
+   * Legacy create method for compatibility
+   */
+  public create(bookingDTO: any): Observable<ResponseDTO> {
+    return this.http.post<ResponseDTO>(this.bookingsURL, bookingDTO);
+  }
+
+  public getAll(filters?: {
+    page?: number;
+    size?: number;
+  }): Observable<ResponseDTO> {
+    let params = new HttpParams();
+
+    if (filters) {
+      params = params.set('page', (filters.page || 0).toString());
+      params = params.set('size', (filters.size || 10).toString());
+    }
+
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/search`, { params });
+  }
+
+  public getById(id: number): Observable<ResponseDTO> {
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/${id}`);
+  }
+
+  public cancel(id: number): Observable<ResponseDTO> {
+    // Backend might have cancel endpoint - using delete for now
+    return this.http.delete<ResponseDTO>(`${this.bookingsURL}/${id}`);
+  }
+
+  // Compatibility methods for existing components
+  public getUserBookings(): Observable<UserBooking[]> {
+    return this.getAll().pipe(
+      map((response: ResponseDTO) => {
+        if (!response.success || !response.content) return [];
+        const bookings = Array.isArray(response.content.content) ? response.content.content : [];
+        return bookings.map((item: any) => this.mapToUserBooking(item));
+      })
+    );
+  }
+
+  public cancelBooking(bookingId: string): Observable<boolean> {
+    return this.cancel(parseInt(bookingId)).pipe(
+      map((response: ResponseDTO) => response.success)
+    );
+  }
+
+  // Helper to map backend response to UserBooking interface
+  private mapToUserBooking(data: any): UserBooking {
+    const statusMap: Record<string, UserBooking['status']> = {
+      'Pendiente': 'upcoming',
+      'Confirmada': 'upcoming',
+      'Completada': 'completed',
+      'Cancelada': 'cancelled'
+    };
+
+    return {
+      id: data.id?.toString() || '',
+      propertyId: data.alojamientoId?.toString() || '',
+      propertyTitle: data.propertyTitle || `Property #${data.alojamientoId}`,
+      propertyImage: data.propertyImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
+      propertyLocation: data.propertyLocation || 'Location TBD',
+      checkIn: data.checkIn || '',
+      checkOut: data.checkOut || '',
+      guests: data.huespedes || data.guests || 1,
+      totalPrice: data.totalPrecio || data.totalPrice || 0,
+      status: statusMap[data.estado] || 'upcoming',
+      bookingDate: data.creadoEn || data.bookingDate || '',
+      confirmationCode: `HOMY-${data.id}`,
+      hostName: data.hostName || 'Host',
+      hostAvatar: data.hostAvatar || 'https://i.pravatar.cc/150?img=5'
+    };
+  }
 }

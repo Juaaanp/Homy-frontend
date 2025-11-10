@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,9 @@ import { LucideAngularModule } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { ButtonComponent } from '../../components/button/button.component';
+import { AuthService } from '../../services/auth.service';
+import { RegisterDTO } from '../../models/register-dto';
+import Swal from 'sweetalert2';
 
 export type Role = 'GUEST' | 'HOST';
 
@@ -29,6 +32,9 @@ function isStrongPassword(pw: string): boolean {
   styleUrl: './register.css'
 })
 export class Register {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   fullName: string = '';
   email: string = '';
   phone: string = '';
@@ -43,8 +49,6 @@ export class Register {
   error: string | null = null;
   success: string | null = null;
   loading: boolean = false;
-
-  constructor(private router: Router) {}
 
   get passwordStrength(): number {
     if (!this.password) return 0;
@@ -76,13 +80,43 @@ export class Register {
       return;
     }
     this.loading = true;
-    // Simulación de llamada a backend
-    setTimeout(() => {
-      this.loading = false;
-      this.error = null;
-      this.success = 'Cuenta creada correctamente. Redirigiendo al inicio...';
-      setTimeout(() => this.router.navigate(['/login']), 2000);
-    }, 1500);
+    this.error = null;
+    this.success = null;
+
+    // Crear el DTO para registro según backend
+    const registerDTO: RegisterDTO = {
+      name: this.fullName,
+      email: this.email,
+      password: this.password,
+      phoneNumber: this.phone.replace(/\D/g, ''), // Solo números
+      birthDate: this.birthdate || '2000-01-01', // String en formato YYYY-MM-DD con default
+      role: this.role
+    };
+
+    console.log('RegisterDTO a enviar:', registerDTO); // Debug
+
+    // Real API call via AuthService
+    this.authService.register(registerDTO).subscribe({
+      next: (data) => {
+        this.loading = false;
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Usuario registrado correctamente',
+          icon: 'success'
+        }).then(() => {
+          this.router.navigate(['/login']);
+        });
+      },
+      error: (error) => {
+        this.loading = false;
+        const errorMessage = error.error?.message || error.error?.content || error.message || 'Error al registrar usuario';
+        Swal.fire({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error'
+        });
+      }
+    });
   }
 
   navigateToLogin(): void {

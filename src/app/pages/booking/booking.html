@@ -239,9 +239,18 @@
                 <lucide-icon name="arrow-left" class="btn-icon-left"></lucide-icon>
                 Back
               </app-button>
-              <app-button (click)="confirmBooking()" class="btn-primary">
-                Confirm reservation
-                <lucide-icon name="check-circle-2" class="btn-icon-right"></lucide-icon>
+              <app-button 
+                (click)="confirmBooking()" 
+                [disabled]="submitting()"
+                class="btn-primary">
+                <span *ngIf="!submitting()">
+                  Confirm reservation
+                  <lucide-icon name="check-circle-2" class="btn-icon-right"></lucide-icon>
+                </span>
+                <span *ngIf="submitting()">
+                  <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
+                  Processing...
+                </span>
               </app-button>
             </div>
           </div>
@@ -273,7 +282,7 @@
       <!-- SUMMARY SIDEBAR -->
       <aside class="sidebar">
         <div class="sidebar-sticky">
-          <div class="summary-card">
+          <div class="card border-0 shadow-sm sticky-top">
             <h3 class="summary-title">Price summary</h3>
             <div class="summary-rows">
               <div class="summary-row">

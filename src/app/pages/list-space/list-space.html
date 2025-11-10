@@ -15,11 +15,9 @@
       <div class="ls-line"></div>
       <div class="ls-step" [class.active]="step() >= 3">3. Pricing</div>
       <div class="ls-line"></div>
-      <div class="ls-step" [class.active]="step() >= 4">4. Photos</div>
+      <div class="ls-step" [class.active]="step() >= 4">4. Amenities</div>
       <div class="ls-line"></div>
-      <div class="ls-step" [class.active]="step() >= 5">5. Amenities</div>
-      <div class="ls-line"></div>
-      <div class="ls-step" [class.active]="step() >= 6">6. Review</div>
+      <div class="ls-step" [class.active]="step() >= 5">5. Review</div>
     </div>
 
     <div class="ls-grid">
@@ -29,6 +27,10 @@
           <label class="ls-label">
             <span>Title</span>
             <input class="ls-input" type="text" placeholder="Cozy apartment in Medellín" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+          </label>
+          <label class="ls-label">
+            <span>Description (optional)</span>
+            <textarea class="ls-input" rows="3" placeholder="Describe your property, its unique features, and what makes it special..." [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
           </label>
           <label class="ls-label">
             <span>Type</span>
@@ -100,27 +102,6 @@
       </section>
 
       <section class="ls-card" *ngIf="step() === 4">
-        <h2 class="ls-card-title">Photos</h2>
-        <div class="ls-form">
-          <div class="ls-photo-row">
-            <input class="ls-input flex-1" placeholder="Paste an image URL" [ngModel]="photoUrl()" (ngModelChange)="photoUrl.set($event)" />
-            <app-button (click)="addPhoto()">Add</app-button>
-          </div>
-          <div class="ls-photos">
-            <div class="ls-photo" *ngFor="let p of photos(); let i = index">
-              <img [src]="p" alt="photo" />
-              <button class="ls-remove" (click)="removePhoto(i)">Remove</button>
-            </div>
-          </div>
-          <div class="ls-error" *ngIf="!validPhotos()">Add at least one photo URL.</div>
-        </div>
-        <div class="ls-actions">
-          <app-button variant="outline" (click)="back()">Back</app-button>
-          <app-button (click)="next()" class="btn-orange">Continue</app-button>
-        </div>
-      </section>
-
-      <section class="ls-card" *ngIf="step() === 5">
         <h2 class="ls-card-title">Amenities</h2>
         <div class="ls-amenities">
           <label class="ls-amenity" *ngFor="let a of amenityOptions">
@@ -134,10 +115,11 @@
         </div>
       </section>
 
-      <section class="ls-card" *ngIf="step() === 6">
+      <section class="ls-card" *ngIf="step() === 5">
         <h2 class="ls-card-title">Review & publish</h2>
         <div class="ls-review">
           <div class="review-row"><span>Title</span><strong>{{ title() }}</strong></div>
+          <div class="review-row" *ngIf="description()"><span>Description</span><strong>{{ description() }}</strong></div>
           <div class="review-row"><span>Type</span><strong>{{ type() }}</strong></div>
           <div class="review-row"><span>Guests</span><strong>{{ guests() }}</strong></div>
           <div class="review-row"><span>Bedrooms</span><strong>{{ bedrooms() }}</strong></div>
@@ -145,14 +127,14 @@
           <div class="review-row"><span>Location</span><strong>{{ address() }}, {{ city() }}, {{ country() }}</strong></div>
           <div class="review-row"><span>Price</span><strong>${{ price() }}/night</strong></div>
           <div class="review-row"><span>Amenities</span><strong>{{ amenities().join(', ') || '—' }}</strong></div>
-          <div class="review-photos">
-            <img *ngFor="let p of photos()" [src]="p" alt="photo" />
-          </div>
         </div>
+
+        <div class="ls-error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
 
         <div class="ls-actions">
           <app-button variant="outline" (click)="back()">Back</app-button>
           <app-button (click)="submit()" [disabled]="submitting()" class="btn-orange">
+            <lucide-icon *ngIf="submitting()" name="loader-2" class="animate-spin" style="width: 16px; height: 16px; margin-right: 8px;"></lucide-icon>
             {{ submitting() ? 'Publishing…' : 'Publish listing' }}
           </app-button>
         </div>
@@ -161,7 +143,7 @@
           <lucide-icon name="check-circle-2"></lucide-icon>
           <div>
             <h3>Listing created!</h3>
-            <p>Your space is now ready. You can connect this to your backend later.</p>
+            <p>Your property has been successfully published and is now visible to guests.</p>
             <app-button (click)="goHome()" class="btn-orange">Back to Home</app-button>
           </div>
         </div>

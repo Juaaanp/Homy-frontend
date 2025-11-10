@@ -1,11 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { ButtonComponent } from '../../components/button/button.component';
+import { AuthService } from '../../services/auth.service';
+import { TokenService } from '../../services/token.service';
+import { LoginDTO } from '../../models/login-dto';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -22,14 +26,17 @@ import { ButtonComponent } from '../../components/button/button.component';
   styleUrl: './login.css'
 })
 export class Login {
+  private authService = inject(AuthService);
+  private tokenService = inject(TokenService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
   remember: boolean = true;
   error: string | null = null;
   loading: boolean = false;
-
-  constructor(private router: Router) {}
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -53,25 +60,54 @@ export class Login {
 
     this.loading = true;
 
-    // Mock API call
-    const payload = { 
-      email: this.email, 
-      password: this.password, 
-      remember: this.remember 
+    // Crear LoginDTO con los datos del formulario
+    const loginDTO: LoginDTO = {
+      email: this.email,
+      password: this.password
     };
-    console.log('LOGIN PAYLOAD', payload);
 
-    // Simular llamada API
-    setTimeout(() => {
-      this.loading = false;
-      // Simular login exitoso
-      this.router.navigate(['/']);
-    }, 1500);
+    // Llamar al servicio de autenticación
+    this.authService.login(loginDTO).subscribe({
+      next: (data: any) => {
+        console.log('Login response:', data); // Debug
+        // El backend devuelve { accessToken: "..." } directamente
+        const token = data.accessToken || data.content?.token;
+        if (token) {
+          this.tokenService.login(token);
+          this.loading = false;
+          
+          // Redirigir al inicio (sin reload para mantener el estado)
+          this.router.navigate(['/']);
+        } else {
+          this.loading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se recibió el token de autenticación'
+          });
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        const errorMessage = error.error?.message || error.error?.content || error.message || 'Error al iniciar sesión';
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorMessage
+        });
+      }
+    });
   }
 
   navigateToRegister(): void {
     if (!this.loading) {
       this.router.navigate(['/register']);
+    }
+  }
+
+  navigateToForgotPassword(): void {
+    if (!this.loading) {
+      this.router.navigate(['/forgot-password']);
     }
   }
 }

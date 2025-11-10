@@ -12,23 +12,40 @@
       <nav class="header-nav">
         <button (click)="navigate('/')" class="header-nav-btn" [class.active]="isActive('/')">Home</button>
         <button (click)="navigate('/explore')" class="header-nav-btn" [class.active]="isActive('/explore')">Explore</button>
+        <button *ngIf="isHost" (click)="navigate('/host/listings')" class="header-nav-btn" [class.active]="isActive('/host/listings')">My Listings</button>
       </nav>
       <!-- Actions -->
       <div class="header-actions">
         <app-button variant="ghost" size="sm" class="header-list-btn" (click)="navigate('/host/list')">
           List your space
         </app-button>
-        <app-button variant="ghost" size="icon" class="header-heart-btn" (click)="navigate('/bookings')">
-          <lucide-icon name="calendar-check" class="header-heart-icon"></lucide-icon>
-        </app-button>
-        <div class="header-auth-flex">
-          <app-button variant="outline" size="sm" class="header-signin-btn" (click)="navigate('/login')">
-            Sign in
+        
+        <!-- Logged In User Actions -->
+        <ng-container *ngIf="isLoggedIn">
+          <app-button variant="ghost" size="icon" class="header-heart-btn" (click)="navigate('/bookings')">
+            <lucide-icon name="calendar-check" class="header-heart-icon"></lucide-icon>
           </app-button>
-          <app-button size="sm" (click)="navigate('/register')" class="header-signup-btn">
-            Sign up
+          <app-button variant="ghost" size="icon" (click)="navigate('/profile')">
+            <lucide-icon name="user" class="header-heart-icon"></lucide-icon>
           </app-button>
-        </div>
+          <span class="user-email">{{ userEmail }}</span>
+          <app-button variant="outline" size="sm" (click)="logout()">
+            Logout
+          </app-button>
+        </ng-container>
+        
+        <!-- Not Logged In Actions -->
+        <ng-container *ngIf="!isLoggedIn">
+          <div class="header-auth-flex">
+            <app-button variant="outline" size="sm" class="header-signin-btn" (click)="navigate('/login')">
+              Sign in
+            </app-button>
+            <app-button size="sm" (click)="navigate('/register')" class="header-signup-btn">
+              Sign up
+            </app-button>
+          </div>
+        </ng-container>
+        
         <app-button variant="ghost" size="icon" class="header-menu-btn">
           <lucide-icon name="menu" class="header-menu-icon"></lucide-icon>
         </app-button>

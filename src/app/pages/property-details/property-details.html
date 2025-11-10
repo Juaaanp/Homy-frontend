@@ -1,6 +1,6 @@
 <app-header></app-header>
 
-<div class="property-details-page">
+<div class="bg-light min-vh-100">
   @if (loading()) {
     <div class="loading-container">
       <div class="loader"></div>
@@ -46,7 +46,7 @@
 
       <!-- Image Gallery -->
       <div class="image-gallery">
-        <div class="main-image">
+        <div class="img-fluid rounded">
           <img [src]="currentImage()" [alt]="property()?.title">
           <button class="nav-btn prev" (click)="previousImage()">
             <lucide-icon [img]="ChevronLeft" [strokeWidth]="2"></lucide-icon>
@@ -57,7 +57,7 @@
         </div>
         <div class="thumbnails">
           @for (image of property()?.images; track $index) {
-            <div class="thumbnail" 
+            <div class="col-3" 
                  [class.active]="selectedImageIndex() === $index"
                  (click)="selectImage($index)">
               <img [src]="image" [alt]="'Photo ' + ($index + 1)">
@@ -68,9 +68,9 @@
 
       <!-- Content Grid -->
       <div class="content-grid">
-        <div class="main-content">
+        <div class="col-lg-8">
           <!-- Property Info -->
-          <section class="info-section">
+          <section class="row">
             <h2>Property Details</h2>
             <div class="specs">
               <div class="spec-item">
@@ -101,9 +101,9 @@
           <!-- Amenities -->
           <section class="amenities-section">
             <h3>What this place offers</h3>
-            <div class="amenities-grid">
+            <div class="row g-3">
               @for (amenity of property()?.amenities; track amenity) {
-                <div class="amenity-item">
+                <div class="col-6 col-md-4">
                   <lucide-icon [img]="Wifi" [strokeWidth]="2"></lucide-icon>
                   <span>{{ amenity }}</span>
                 </div>
@@ -128,7 +128,7 @@
 
         <!-- Booking Sidebar -->
         <div class="booking-sidebar">
-          <div class="booking-card">
+          <div class="card border-0 shadow sticky-top">
             <div class="booking-header">
               <div class="price">
                 <span class="amount">${{ property()?.price }}</span>
@@ -140,7 +140,7 @@
               </div>
             </div>
 
-            <div class="booking-form">
+            <div class="">
               <div class="date-group">
                 <div class="input-group">
                   <label>Check-in</label>

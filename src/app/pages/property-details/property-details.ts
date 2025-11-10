@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule, Star, MapPin, Users, Bed, Bath, Wifi, Car, Tv, Wind, Calendar, Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-angular';
 import { PropertyService } from '../../services/property.service';
+import { HousingService, HousingDetails } from '../../services/housing.service';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 
@@ -71,7 +72,8 @@ export class PropertyDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private propertyService: PropertyService
+    private propertyService: PropertyService,
+    private housingService: HousingService
   ) {}
 
   ngOnInit() {
@@ -83,6 +85,29 @@ export class PropertyDetailsComponent implements OnInit {
 
   loadProperty(id: string) {
     this.loading.set(true);
+    
+    // Try to load from backend first
+    const numericId = parseInt(id);
+    if (!isNaN(numericId)) {
+      this.housingService.getHousingById(numericId).subscribe({
+        next: (housing) => {
+          const property = this.mapHousingToProperty(housing);
+          this.property.set(property);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading housing from backend:', error);
+          // Fallback to mock data
+          this.loadMockProperty(id);
+        }
+      });
+    } else {
+      // Load mock data for non-numeric IDs
+      this.loadMockProperty(id);
+    }
+  }
+
+  loadMockProperty(id: string) {
     this.propertyService.getPropertyById(id).subscribe({
       next: (property) => {
         this.property.set(property);
@@ -93,6 +118,43 @@ export class PropertyDetailsComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  mapHousingToProperty(housing: HousingDetails): any {
+    return {
+      id: housing.id.toString(),
+      title: housing.title,
+      description: housing.description,
+      price: housing.pricePerNight,
+      location: `${housing.city}, ${housing.address}`,
+      city: housing.city,
+      country: 'Colombia',
+      rating: 4.5,
+      reviews: 0,
+      reviewCount: 0,
+      bedrooms: 2,
+      bathrooms: 1,
+      guests: housing.maxCapacity,
+      area: 1200,
+      type: 'Apartment',
+      images: housing.images.length > 0 
+        ? housing.images.map(img => img.url) 
+        : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+      imageUrl: housing.images[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+      amenities: housing.services || [],
+      host: {
+        name: housing.hostName || 'Host',
+        avatar: 'https://i.pravatar.cc/150?img=5',
+        joinDate: '2024-01',
+        verified: true
+      },
+      coordinates: { 
+        lat: housing.latitude, 
+        lng: housing.length 
+      },
+      isNew: true,
+      featured: false
+    };
   }
 
   selectImage(index: number) {
