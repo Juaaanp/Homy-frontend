@@ -56,13 +56,26 @@ export class BookingService {
 
   constructor() { }
 
+  private getAuthHeaders() {
+    const token = this.tokenService.getToken();
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+  }
+
   /**
    * Create a new booking
    * POST /bookings
    */
   public createBooking(bookingData: BookingCreateDTO): Observable<string> {
-    return this.http.post<ResponseDTO>(this.bookingsURL, bookingData).pipe(
+    console.log('Creating booking with data:', bookingData);
+    
+    return this.http.post<ResponseDTO>(this.bookingsURL, bookingData, this.getAuthHeaders()).pipe(
       map((response: ResponseDTO) => {
+        console.log('Backend response:', response);
         if (!response.success) {
           throw new Error(response.content || 'Failed to create booking');
         }
@@ -70,6 +83,7 @@ export class BookingService {
       }),
       catchError((error) => {
         console.error('Error creating booking:', error);
+        console.error('Error details:', error.error);
         const message = error.error?.content || error.error?.message || 'Failed to create booking';
         return throwError(() => new Error(message));
       })
@@ -98,52 +112,93 @@ export class BookingService {
   }
 
   public getById(id: number): Observable<ResponseDTO> {
-    return this.http.get<ResponseDTO>(`${this.bookingsURL}/${id}`);
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/${id}`, this.getAuthHeaders());
   }
 
-  public cancel(id: number): Observable<ResponseDTO> {
-    // Backend might have cancel endpoint - using delete for now
-    return this.http.delete<ResponseDTO>(`${this.bookingsURL}/${id}`);
-  }
-
-  // Compatibility methods for existing components
-  public getUserBookings(): Observable<UserBooking[]> {
-    return this.getAll().pipe(
-      map((response: ResponseDTO) => {
-        if (!response.success || !response.content) return [];
-        const bookings = Array.isArray(response.content.content) ? response.content.content : [];
-        return bookings.map((item: any) => this.mapToUserBooking(item));
+  /**
+   * Cancel a booking
+   * PATCH /bookings/{id}/cancel
+   */
+  public cancelBooking(bookingId: string): Observable<boolean> {
+    const id = parseInt(bookingId);
+    return this.http.patch<void>(`${this.bookingsURL}/${id}/cancel`, {}, this.getAuthHeaders()).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error canceling booking:', error);
+        return throwError(() => error);
       })
     );
   }
 
-  public cancelBooking(bookingId: string): Observable<boolean> {
-    return this.cancel(parseInt(bookingId)).pipe(
-      map((response: ResponseDTO) => response.success)
+  /**
+   * Legacy cancel method for compatibility
+   */
+  public cancel(id: number): Observable<ResponseDTO> {
+    return this.http.patch<ResponseDTO>(`${this.bookingsURL}/${id}/cancel`, {}, this.getAuthHeaders());
+  }
+
+  /**
+   * Get bookings for the current authenticated user (guest or host)
+   * GET /bookings/search
+   * Backend automatically filters by authenticated user
+   */
+  public getUserBookings(page: number = 0, size: number = 50): Observable<UserBooking[]> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/search`, { 
+      params,
+      ...this.getAuthHeaders() 
+    }).pipe(
+      map((response: ResponseDTO) => {
+        console.log('User bookings response:', response);
+        if (!response.success || !response.content) return [];
+        
+        // Handle paginated response
+        const bookings = Array.isArray(response.content.content) 
+          ? response.content.content 
+          : (Array.isArray(response.content) ? response.content : []);
+        
+        return bookings.map((item: any) => this.mapToUserBooking(item));
+      }),
+      catchError((error) => {
+        console.error('Error loading user bookings:', error);
+        return throwError(() => error);
+      })
     );
   }
 
   // Helper to map backend response to UserBooking interface
   private mapToUserBooking(data: any): UserBooking {
+    // Map backend enum status to frontend status
     const statusMap: Record<string, UserBooking['status']> = {
-      'Pendiente': 'upcoming',
-      'Confirmada': 'upcoming',
-      'Completada': 'completed',
-      'Cancelada': 'cancelled'
+      'CONFIRMED': 'upcoming',
+      'COMPLETED': 'completed',
+      'CANCELED': 'cancelled',
+      // Spanish versions for compatibility
+      'CONFIRMADA': 'upcoming',
+      'COMPLETADA': 'completed',
+      'CANCELADA': 'cancelled'
     };
+
+    // Extract housing info if available
+    const housingTitle = data.housingTitle || data.propertyTitle || `Property #${data.housingId || data.alojamientoId}`;
+    const housingImage = data.housingImage || data.propertyImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800';
+    const housingLocation = data.housingLocation || data.propertyLocation || data.city || 'Location TBD';
 
     return {
       id: data.id?.toString() || '',
-      propertyId: data.alojamientoId?.toString() || '',
-      propertyTitle: data.propertyTitle || `Property #${data.alojamientoId}`,
-      propertyImage: data.propertyImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-      propertyLocation: data.propertyLocation || 'Location TBD',
+      propertyId: (data.housingId || data.alojamientoId)?.toString() || '',
+      propertyTitle: housingTitle,
+      propertyImage: housingImage,
+      propertyLocation: housingLocation,
       checkIn: data.checkIn || '',
       checkOut: data.checkOut || '',
-      guests: data.huespedes || data.guests || 1,
-      totalPrice: data.totalPrecio || data.totalPrice || 0,
-      status: statusMap[data.estado] || 'upcoming',
-      bookingDate: data.creadoEn || data.bookingDate || '',
+      guests: data.guestsNumber || data.huespedes || data.guests || 1,
+      totalPrice: data.totalPrice || data.totalPrecio || 0,
+      status: statusMap[data.status?.toUpperCase()] || statusMap[data.estado] || 'upcoming',
+      bookingDate: data.createdAt || data.creadoEn || data.bookingDate || '',
       confirmationCode: `HOMY-${data.id}`,
       hostName: data.hostName || 'Host',
       hostAvatar: data.hostAvatar || 'https://i.pravatar.cc/150?img=5'

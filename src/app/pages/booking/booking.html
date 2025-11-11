@@ -2,6 +2,14 @@
   <app-header></app-header>
 
   <main class="main-container">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading property details...</p>
+    </div>
+
+    <!-- Content (shown when not loading) -->
+    <div *ngIf="!loading()">
     <!-- Stepper -->
     <div class="stepper">
       <div [class.stepper-badge-active]="step() >= 1" class="stepper-badge">
@@ -27,7 +35,7 @@
             Dates & Guests
           </h2>
           <p class="card-subtitle">
-            Minimum 1 night · No past dates · Max capacity {{ MAX_GUESTS }} guests
+            Minimum 1 night · No past dates · Max capacity {{ MAX_GUESTS() }} guests
           </p>
 
           <div class="form-grid">
@@ -57,8 +65,8 @@
               <span class="label-text">Guests</span>
               <input
                 type="number"
-                [min]="1"
-                [max]="MAX_GUESTS"
+                min="1"
+                [max]="MAX_GUESTS()"
                 [ngModel]="guests()"
                 (ngModelChange)="guests.set($event)"
                 class="form-input"
@@ -68,7 +76,7 @@
 
           <div class="nights-info">
             <span class="font-medium">{{ nights() }}</span>
-            night{{ nights() === 1 ? '' : 's' }} · ${{ NIGHTLY_PRICE }}/night
+            night{{ nights() === 1 ? '' : 's' }} · ${{ NIGHTLY_PRICE() }}/night
           </div>
 
           <div *ngIf="s1Error()" class="error-box">
@@ -282,11 +290,31 @@
       <!-- SUMMARY SIDEBAR -->
       <aside class="sidebar">
         <div class="sidebar-sticky">
+          <!-- Property Info -->
+          <div *ngIf="property()" class="card border-0 shadow-sm mb-4">
+            <div class="property-info">
+              <img 
+                [src]="property()!.images[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" 
+                [alt]="property()!.title"
+                class="property-image"
+              />
+              <div class="property-details">
+                <h4 class="property-title">{{ property()!.title }}</h4>
+                <p class="property-location">
+                  <lucide-icon name="map-pin" class="location-icon"></lucide-icon>
+                  {{ property()!.city }}
+                </p>
+                <p class="property-price">${{ property()!.nightPrice }} / night</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Summary -->
           <div class="card border-0 shadow-sm sticky-top">
             <h3 class="summary-title">Price summary</h3>
             <div class="summary-rows">
               <div class="summary-row">
-                <span>${{ NIGHTLY_PRICE }} x {{ nights() }} night{{ nights() === 1 ? '' : 's' }}</span>
+                <span>${{ NIGHTLY_PRICE() }} x {{ nights() }} night{{ nights() === 1 ? '' : 's' }}</span>
                 <span>${{ subtotal() }}</span>
               </div>
               <div class="summary-row">
@@ -318,6 +346,7 @@
         </div>
       </aside>
     </div>
+    </div> <!-- Close loading wrapper -->
   </main>
 
   <app-footer></app-footer>

@@ -22,10 +22,11 @@ export interface HousingSummary {
   id: number;
   title: string;
   city: string;
-  address: string;
-  pricePerNight: number;
-  maxCapacity: number;
-  imageUrl: string | null;
+  address?: string; // Optional in backend response
+  nightPrice: number; // Backend uses 'nightPrice', not 'pricePerNight'
+  maxCapacity?: number; // Optional in backend response
+  principalImage?: string | null; // Backend uses 'principalImage', not 'imageUrl'
+  averageRating?: number | null;
 }
 
 export interface HousingDetails {
@@ -37,7 +38,7 @@ export interface HousingDetails {
   length: number;
   address: string;
   maxCapacity: number;
-  pricePerNight: number;
+  nightPrice: number; // Backend uses 'nightPrice'
   services: string[];
   images: HousingImage[];
   hostId: number;
@@ -106,15 +107,38 @@ export class HousingService {
 
   /**
    * Get all housings with pagination and filters
+   * Backend requires: city, checkIn, checkOut, minPrice, maxPrice, indexPage
    */
-  getAllHousings(page: number = 0, size: number = 10, city?: string): Observable<PageResponse<HousingSummary>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+  getAllHousings(
+    page: number = 0, 
+    size: number = 10, 
+    city: string = '',
+    checkIn?: string,
+    checkOut?: string,
+    minPrice: number = 0,
+    maxPrice: number = 999999
+  ): Observable<PageResponse<HousingSummary>> {
+    // Default dates: today and 30 days from now
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
     
-    if (city) {
-      params = params.set('city', city);
-    }
+    const defaultCheckIn = checkIn || today.toISOString().split('T')[0];
+    const defaultCheckOut = checkOut || futureDate.toISOString().split('T')[0];
+    
+    // Backend requires ALL these parameters
+    const params = new HttpParams()
+      .set('city', city)
+      .set('checkIn', defaultCheckIn)
+      .set('checkOut', defaultCheckOut)
+      .set('minPrice', minPrice.toString())
+      .set('maxPrice', maxPrice.toString())
+      .set('indexPage', page.toString());
+
+    console.log('🔍 [HousingService] Request params:', {
+      city, checkIn: defaultCheckIn, checkOut: defaultCheckOut, 
+      minPrice, maxPrice, page
+    });
 
     return this.http.get<PageResponse<HousingSummary>>(
       this.apiUrl,
@@ -124,7 +148,7 @@ export class HousingService {
       }
     ).pipe(
       catchError(error => {
-        console.error('Error fetching housings:', error);
+        console.error('❌ [HousingService] Error fetching housings:', error);
         return throwError(() => error);
       })
     );
@@ -148,11 +172,14 @@ export class HousingService {
 
   /**
    * Get housings by host ID
+   * Backend endpoint: GET /housings/host/{hostId}?page={page}&size={size}
    */
   getHousingsByHost(hostId: number, page: number = 0, size: number = 10): Observable<PageResponse<HousingSummary>> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+
+    console.log('🔍 [HousingService] Fetching housings for host:', { hostId, page, size });
 
     return this.http.get<PageResponse<HousingSummary>>(
       `${this.apiUrl}/host/${hostId}`,
@@ -161,8 +188,12 @@ export class HousingService {
         params 
       }
     ).pipe(
+      map(response => {
+        console.log('✅ [HousingService] Host housings response:', response);
+        return response;
+      }),
       catchError(error => {
-        console.error('Error fetching host housings:', error);
+        console.error('❌ [HousingService] Error fetching host housings:', error);
         return throwError(() => error);
       })
     );
@@ -177,15 +208,22 @@ export class HousingService {
 
   /**
    * Update housing (HOST only)
+   * Backend endpoint: POST /housings/edit/{housingId}
    */
   updateHousing(id: number, housing: CreateHousingDTO): Observable<ResponseDTO<HousingDetails>> {
-    return this.http.put<ResponseDTO<HousingDetails>>(
-      `${this.apiUrl}/${id}`,
+    console.log('🔄 [HousingService] Updating housing:', { id, housing });
+    
+    return this.http.post<ResponseDTO<HousingDetails>>(
+      `${this.apiUrl}/edit/${id}`,
       housing,
       { headers: this.getAuthHeaders() }
     ).pipe(
+      map(response => {
+        console.log('✅ [HousingService] Housing updated successfully:', response);
+        return response;
+      }),
       catchError(error => {
-        console.error('Error updating housing:', error);
+        console.error('❌ [HousingService] Error updating housing:', error);
         return throwError(() => error);
       })
     );
@@ -193,10 +231,11 @@ export class HousingService {
 
   /**
    * Delete housing (HOST only)
+   * Backend: DELETE /housings/delete/{id}
    */
-  deleteHousing(id: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiUrl}/${id}`,
+  deleteHousing(id: number): Observable<any> {
+    return this.http.delete<any>(
+      `${this.apiUrl}/delete/${id}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(error => {
@@ -227,5 +266,25 @@ export class HousingService {
     return amenities
       .map(amenity => serviceMap[amenity])
       .filter(service => service !== undefined && ['WIFI', 'PARKING', 'POOL', 'GYM', 'PETS_ALLOWED', 'AIR_CONDITIONING', 'BREAKFAST_INCLUDED'].includes(service));
+  }
+
+  /**
+   * Map backend services enum to frontend amenities
+   * Reverse mapping of mapAmenitiesToServices
+   */
+  mapServicesToAmenities(services: string[]): string[] {
+    const amenityMap: { [key: string]: string } = {
+      'WIFI': 'WiFi',
+      'AIR_CONDITIONING': 'Air Conditioning',
+      'PARKING': 'Parking',
+      'POOL': 'Pool',
+      'PETS_ALLOWED': 'Pet Friendly',
+      'GYM': 'Gym',
+      'BREAKFAST_INCLUDED': 'Breakfast'
+    };
+
+    return services
+      .map(service => amenityMap[service])
+      .filter(amenity => amenity !== undefined);
   }
 }

@@ -1,0 +1,95 @@
+<div class="min-h-screen bg-white">
+  <app-header></app-header>
+
+  <main class="ml-container">
+    <div class="ml-header">
+      <div>
+        <h1 class="ml-title">My Listings</h1>
+        <p class="ml-subtitle">Manage your properties and bookings</p>
+      </div>
+      <button class="btn-create" (click)="createNewListing()">
+        <lucide-icon name="plus"></lucide-icon>
+        Create New Listing
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+      <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
+      <p>Loading your listings...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && listings().length === 0" class="empty-state">
+      <lucide-icon name="home"></lucide-icon>
+      <h3>No listings yet</h3>
+      <p>Start earning by listing your property on Homy</p>
+      <button class="btn-create" (click)="createNewListing()">
+        <lucide-icon name="plus"></lucide-icon>
+        Create Your First Listing
+      </button>
+    </div>
+
+    <!-- Listings Grid -->
+    <div *ngIf="!loading() && listings().length > 0" class="ml-grid">
+      <div *ngFor="let listing of listings()" class="ml-card">
+        <div class="ml-image">
+          <img [src]="listing.principalImage || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" [alt]="listing.title" />
+          <div class="ml-badge">Active</div>
+        </div>
+        
+        <div class="ml-content">
+          <h3 class="ml-listing-title">{{ listing.title }}</h3>
+          <div class="ml-location">
+            <lucide-icon name="map-pin"></lucide-icon>
+            {{ listing.city }}{{ listing.address ? ', ' + listing.address : '' }}
+          </div>
+          
+          <div class="ml-details">
+            <div class="ml-detail">
+              <lucide-icon name="users"></lucide-icon>
+              {{ listing.maxCapacity }} guests
+            </div>
+            <div class="ml-detail">
+              <lucide-icon name="dollar-sign"></lucide-icon>
+              ${{ listing.nightPrice }}/night
+            </div>
+          </div>
+
+          <div class="ml-actions">
+            <button 
+              type="button"
+              class="btn-action btn-view" 
+              (click)="viewListing(listing.id); $event.stopPropagation()"
+              (mousedown)="testClick($event, 'view-mousedown', listing.id)"
+              [attr.data-id]="listing.id">
+              <lucide-icon name="eye"></lucide-icon>
+              <span>View</span>
+            </button>
+            <button 
+              type="button"
+              class="btn-action btn-edit" 
+              (click)="editListing(listing.id); $event.stopPropagation()"
+              (mousedown)="testClick($event, 'edit-mousedown', listing.id)"
+              [attr.data-id]="listing.id">
+              <lucide-icon name="edit"></lucide-icon>
+              <span>Edit</span>
+            </button>
+            <button 
+              type="button"
+              class="btn-action btn-delete" 
+              (click)="deleteListing(listing.id, listing.title); $event.stopPropagation()"
+              (mousedown)="testClick($event, 'delete-mousedown', listing.id)"
+              [attr.data-id]="listing.id"
+              [attr.data-title]="listing.title">
+              <lucide-icon name="trash-2"></lucide-icon>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -25,55 +25,193 @@ export class Explore implements OnInit {
   viewMode = signal<'grid' | 'list'>('grid');
   showFilters = signal(false);
   
-  // All properties loaded from service
+  // All properties loaded from backend (unfiltered)
   allProperties = signal<Property[]>([]);
   
-  // Filter signals (reactive)
+  // Displayed properties (after filters applied)
+  displayedProperties = signal<Property[]>([]);
+  
+  // Filter values
   searchLocation = signal('');
-  priceRange = signal(500);
-  propertyType = signal('');
-  rating = signal(0);
-  bedrooms = signal(0);
-  bathrooms = signal(0);
+  minPrice = signal(0);
+  maxPrice = signal(10000); // High default to show all
+  propertyType = signal('All');
+  minRating = signal(0);
+  minBedrooms = signal(0);
+  minBathrooms = signal(0);
   sortBy = signal('recommended');
   
-  // Search bar inputs (not used in filtering yet, for future enhancement)
+  // Dynamic max price from loaded properties
+  maxAvailablePrice = signal(10000);
+  
+  // UI state
   checkInOut = '';
   guests = '';
   
   propertyTypes = ['All', 'Apartment', 'House', 'Villa', 'Cabin', 'Loft'];
   ratingOptions = [5, 4, 3, 2];
   
-  // Computed filtered and sorted properties
-  filteredProperties = computed(() => {
+  // Computed property count
+  propertyCount = computed(() => this.displayedProperties().length);
+  
+  // Alias for backward compatibility with template
+  filteredProperties = computed(() => this.displayedProperties());
+  
+  loading = signal(true);
+  backendProperties = signal<HousingSummary[]>([]);
+
+  constructor(
+    private router: Router,
+    private propertyService: PropertyService,
+    private housingService: HousingService
+  ) {}
+
+  ngOnInit() {
+    console.log('🔍 [Explore] ===== COMPONENT INITIALIZED =====');
+    console.log('🔍 [Explore] allProperties count:', this.allProperties().length);
+    console.log('🔍 [Explore] Starting to load properties...');
+    this.loadAllProperties();
+  }
+
+  /**
+   * Load properties from multiple cities
+   */
+  loadAllProperties() {
+    console.log('📡 [Explore] Starting parallel load from 5 cities...');
+    this.loading.set(true);
+    const cities = ['Medellin', 'Bogota', 'Cali', 'Barranquilla', 'Cartagena'];
+    let loadedCount = 0;
+    const allHousings: HousingSummary[] = [];
+
+    cities.forEach((city, index) => {
+      console.log(`📡 [Explore] Requesting city ${index + 1}/5: ${city}`);
+      
+      this.housingService.getAllHousings(0, 50, city).subscribe({
+        next: (response) => {
+          console.log(`✅ [Explore] SUCCESS ${city}: ${response.content.length} properties`);
+          console.log(`   Data:`, response.content);
+          allHousings.push(...response.content);
+          loadedCount++;
+
+          // When all cities are loaded
+          if (loadedCount === cities.length) {
+            console.log(`🎉 [Explore] All cities loaded! Total housings: ${allHousings.length}`);
+            this.processLoadedProperties(allHousings);
+          }
+        },
+        error: (err) => {
+          console.error(`❌ [Explore] ERROR ${city}:`, err);
+          console.error(`   Status: ${err.status}, Message:`, err.message);
+          
+          // Check for auth error
+          if (err.status === 401) {
+            console.error('🔒 AUTHENTICATION REQUIRED! Please login first.');
+            console.error('   Go to /login or click "Sign in" button');
+          }
+          
+          loadedCount++;
+          
+          if (loadedCount === cities.length) {
+            console.log(`⚠️ [Explore] All requests completed. Total: ${allHousings.length}`);
+            
+            // If all failed due to auth, show message
+            if (allHousings.length === 0 && err.status === 401) {
+              this.loading.set(false);
+              alert('Please login to view properties. Click "Sign in" button.');
+              this.router.navigate(['/login']);
+              return;
+            }
+            
+            this.processLoadedProperties(allHousings);
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Process and deduplicate loaded properties
+   */
+  processLoadedProperties(housings: HousingSummary[]) {
+    // Remove duplicates by ID
+    const uniqueHousings = Array.from(
+      new Map(housings.map(h => [h.id, h])).values()
+    );
+
+    console.log(`✅ [Explore] Total unique properties: ${uniqueHousings.length}`);
+    this.backendProperties.set(uniqueHousings);
+    
+    // Map to Property interface
+    const mapped = uniqueHousings
+      .map(h => this.mapHousingToProperty(h))
+      .filter(p => p !== null) as Property[];
+    
+    this.allProperties.set(mapped);
+    
+    // Calculate max price from loaded properties
+    if (mapped.length > 0) {
+      const calculatedMax = Math.max(...mapped.map(p => p.price));
+      this.maxAvailablePrice.set(calculatedMax);
+      this.maxPrice.set(calculatedMax); // Set filter to max
+      console.log(`💰 Max price: $${calculatedMax}`);
+    }
+    
+    // Show all properties initially (no filters applied)
+    this.displayedProperties.set(mapped);
+    this.loading.set(false);
+
+    // Fallback to mock data if nothing loaded
+    if (mapped.length === 0) {
+      console.log('⚠️ [Explore] No properties, using mock data');
+      this.propertyService.getAllProperties().subscribe({
+        next: (properties) => {
+          this.allProperties.set(properties);
+          this.displayedProperties.set(properties);
+          this.loading.set(false);
+        }
+      });
+    }
+  }
+
+  /**
+   * Apply all filters to properties
+   */
+  applyFilters() {
+    console.log('🔍 Applying filters...');
     let results = [...this.allProperties()];
     
     // Filter by price range
-    const maxPrice = this.priceRange();
-    results = results.filter(p => p.price <= maxPrice);
+    const min = this.minPrice();
+    const max = this.maxPrice();
+    results = results.filter(p => p.price >= min && p.price <= max);
+    console.log(`  💰 Price filter ($${min}-$${max}): ${results.length} properties`);
     
     // Filter by property type
     const type = this.propertyType();
     if (type && type !== 'All') {
       results = results.filter(p => p.type === type);
+      console.log(`  🏠 Type filter (${type}): ${results.length} properties`);
     }
     
     // Filter by minimum rating
-    const minRating = this.rating();
-    if (minRating > 0) {
-      results = results.filter(p => p.rating >= minRating);
+    const rating = this.minRating();
+    if (rating > 0) {
+      results = results.filter(p => p.rating >= rating);
+      console.log(`  ⭐ Rating filter (>=${rating}): ${results.length} properties`);
     }
     
-    // Filter by minimum bedrooms
-    const minBedrooms = this.bedrooms();
-    if (minBedrooms > 0) {
-      results = results.filter(p => (p.bedrooms ?? 0) >= minBedrooms);
+    // Filter by bedrooms
+    const beds = this.minBedrooms();
+    if (beds > 0) {
+      results = results.filter(p => (p.bedrooms ?? 0) >= beds);
+      console.log(`  🛏️ Bedrooms filter (>=${beds}): ${results.length} properties`);
     }
     
-    // Filter by minimum bathrooms
-    const minBathrooms = this.bathrooms();
-    if (minBathrooms > 0) {
-      results = results.filter(p => (p.bathrooms ?? 0) >= minBathrooms);
+    // Filter by bathrooms
+    const baths = this.minBathrooms();
+    if (baths > 0) {
+      results = results.filter(p => (p.bathrooms ?? 0) >= baths);
+      console.log(`  🚿 Bathrooms filter (>=${baths}): ${results.length} properties`);
     }
     
     // Apply sorting
@@ -91,80 +229,56 @@ export class Explore implements OnInit {
       case 'reviews':
         results.sort((a, b) => b.reviews - a.reviews);
         break;
-      case 'recommended':
-      default:
-        // Keep original order (or add custom recommendation logic)
-        break;
     }
     
-    return results;
-  });
-  
-  // Computed property count for display
-  propertyCount = computed(() => this.filteredProperties().length);
-  
-  loading = signal(true);
-  backendProperties = signal<HousingSummary[]>([]);
-
-  constructor(
-    private router: Router,
-    private propertyService: PropertyService,
-    private housingService: HousingService
-  ) {}
-
-  ngOnInit() {
-    // Load properties from backend
-    this.housingService.getAllHousings(0, 50).subscribe({
-      next: (response) => {
-        this.backendProperties.set(response.content);
-        // Map backend properties to frontend Property interface
-        const mapped = response.content.map(h => this.mapHousingToProperty(h));
-        this.allProperties.set(mapped);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading properties:', error);
-        // Fallback to mock data
-        this.propertyService.getAllProperties().subscribe({
-          next: (properties) => {
-            this.allProperties.set(properties);
-            this.loading.set(false);
-          }
-        });
-      }
-    });
+    console.log(`✅ Final result: ${results.length} properties`);
+    this.displayedProperties.set(results);
   }
 
-  mapHousingToProperty(housing: HousingSummary): Property {
-    return {
-      id: housing.id.toString(),
-      title: housing.title,
-      description: 'Explore this amazing property',
-      price: housing.pricePerNight,
-      location: `${housing.city}, ${housing.address}`,
-      city: housing.city,
-      country: 'Colombia',
-      rating: 4.5,
-      reviews: 0,
-      reviewCount: 0,
-      bedrooms: 2,
-      bathrooms: 1,
-      guests: housing.maxCapacity,
-      area: 1200,
-      type: 'Apartment',
-      images: housing.imageUrl ? [housing.imageUrl] : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-      imageUrl: housing.imageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-      amenities: [],
-      host: {
-        name: 'Host',
-        avatar: 'https://i.pravatar.cc/150?img=5',
-        joinDate: '2024-01',
-        verified: true
-      },
-      coordinates: { lat: 0, lng: 0 },
-      isNew: true,
-      featured: false
-    };
+  /**
+   * Safely map backend housing to frontend Property
+   */
+  mapHousingToProperty(housing: HousingSummary): Property | null {
+    try {
+      // Validate required fields
+      if (!housing || !housing.id || !housing.title || !housing.city) {
+        console.warn('⚠️ Invalid housing data:', housing);
+        return null;
+      }
+
+      return {
+        id: housing.id.toString(),
+        title: housing.title || 'Property',
+        description: 'Beautiful property in Colombia',
+        price: housing.nightPrice || 100,
+        location: `${housing.city}${housing.address ? ', ' + housing.address : ''}`,
+        city: housing.city,
+        country: 'Colombia',
+        rating: housing.averageRating || 4.5,
+        reviews: 0,
+        reviewCount: 0,
+        bedrooms: 2,
+        bathrooms: 1,
+        guests: housing.maxCapacity || 4,
+        area: 1200,
+        type: 'Apartment',
+        images: housing.principalImage ? [housing.principalImage] : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+        imageUrl: housing.principalImage || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+        amenities: [],
+        host: {
+          name: 'Host',
+          avatar: 'https://i.pravatar.cc/150?img=5',
+          joinDate: '2024-01',
+          verified: true
+        },
+        coordinates: { lat: 0, lng: 0 },
+        isNew: true,
+        featured: false
+      };
+    } catch (error) {
+      console.error('❌ Error mapping housing:', error, housing);
+      return null;
+    }
   }
   
   toggleViewMode(mode: 'grid' | 'list') {
@@ -175,20 +289,82 @@ export class Explore implements OnInit {
     this.showFilters.set(!this.showFilters());
   }
   
+  /**
+   * Clear all filters and show all properties
+   */
   clearFilters() {
-    this.priceRange.set(500);
-    this.propertyType.set('');
-    this.rating.set(0);
-    this.bedrooms.set(0);
-    this.bathrooms.set(0);
+    console.log('🧹 Clearing all filters');
+    this.minPrice.set(0);
+    this.maxPrice.set(this.maxAvailablePrice());
+    this.propertyType.set('All');
+    this.minRating.set(0);
+    this.minBedrooms.set(0);
+    this.minBathrooms.set(0);
+    this.searchLocation.set('');
+    
+    // Show all properties
+    this.displayedProperties.set(this.allProperties());
   }
   
+  /**
+   * Search properties with filters from search bar
+   */
   searchProperties() {
-    console.log('Searching with:', {
-      location: this.searchLocation,
-      checkInOut: this.checkInOut,
-      guests: this.guests
+    const location = this.searchLocation().trim();
+    console.log('🔍 Searching with location:', location);
+
+    if (!location) {
+      // If no location, show all properties
+      this.loadAllProperties();
+      return;
+    }
+
+    // Search by specific city
+    this.loading.set(true);
+    this.housingService.getAllHousings(0, 50, location).subscribe({
+      next: (response) => {
+        console.log(`✅ Found ${response.content.length} properties in ${location}`);
+        const mapped = response.content
+          .map(h => this.mapHousingToProperty(h))
+          .filter(p => p !== null) as Property[];
+        
+        this.allProperties.set(mapped);
+        this.loading.set(false);
+
+        if (mapped.length === 0) {
+          // Try partial match in all properties
+          this.searchInAllProperties(location);
+        }
+      },
+      error: (err) => {
+        console.warn(`⚠️ Search failed for ${location}:`, err);
+        this.searchInAllProperties(location);
+      }
     });
+  }
+
+  /**
+   * Search within already loaded properties
+   */
+  searchInAllProperties(searchTerm: string) {
+    const term = searchTerm.toLowerCase();
+    const filtered = this.backendProperties().filter(h => 
+      h.city?.toLowerCase().includes(term) ||
+      h.title?.toLowerCase().includes(term) ||
+      h.address?.toLowerCase().includes(term)
+    );
+
+    if (filtered.length > 0) {
+      const mapped = filtered
+        .map(h => this.mapHousingToProperty(h))
+        .filter(p => p !== null) as Property[];
+      this.allProperties.set(mapped);
+      console.log(`✅ Found ${mapped.length} properties matching "${searchTerm}"`);
+    } else {
+      this.allProperties.set([]);
+      console.log(`❌ No properties found matching "${searchTerm}"`);
+    }
+    this.loading.set(false);
   }
   
   viewProperty(id: string) {
