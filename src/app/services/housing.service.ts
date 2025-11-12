@@ -110,7 +110,8 @@ export class HousingService {
   getAllHousings(page: number = 0, size: number = 10, city?: string): Observable<PageResponse<HousingSummary>> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('minPrice', 0);
     
     if (city) {
       params = params.set('city', city);

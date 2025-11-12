@@ -67,6 +67,7 @@ export class PropertyService {
     if (checkOut) params = params.set('checkOut', checkOut);
     if (page !== undefined) params = params.set('page', page.toString());
     if (size !== undefined) params = params.set('size', size.toString());
+    params = params.set('minPrice', '0');
 
     return this.http.get<ResponseDTO>(this.housingsURL, { params });
   }
