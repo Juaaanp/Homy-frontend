@@ -19,7 +19,9 @@
               <lucide-icon name="map-pin" class="input-icon"></lucide-icon>
               <input
                 type="text"
-                [(ngModel)]="searchLocation"
+                [ngModel]="searchLocation()"
+                (ngModelChange)="searchLocation.set($event)"
+                (keyup.enter)="searchProperties()"
                 placeholder="Where do you want to go?"
                 class="search-input"
               />
@@ -73,14 +75,14 @@
                   <input
                     type="range"
                     min="0"
-                    max="500"
-                    [ngModel]="priceRange()"
-                    (ngModelChange)="priceRange.set($event)"
+                    [max]="maxAvailablePrice()"
+                    [ngModel]="maxPrice()"
+                    (ngModelChange)="maxPrice.set($event); applyFilters()"
                     class="slider"
                   />
                   <div class="price-labels">
                     <span>$0</span>
-                    <span>${{ priceRange() }}+</span>
+                    <span>${{ maxPrice() }}</span>
                   </div>
                 </div>
               </div>
@@ -95,7 +97,7 @@
                       name="propertyType"
                       [value]="type"
                       [ngModel]="propertyType()"
-                      (ngModelChange)="propertyType.set($event)"
+                      (ngModelChange)="propertyType.set($event); applyFilters()"
                     />
                     <span>{{ type }}</span>
                   </label>
@@ -111,8 +113,8 @@
                       type="radio"
                       name="rating"
                       [value]="rate"
-                      [ngModel]="rating()"
-                      (ngModelChange)="rating.set($event)"
+                      [ngModel]="minRating()"
+                      (ngModelChange)="minRating.set($event); applyFilters()"
                     />
                     <div class="rating-stars">
                       <lucide-icon
@@ -132,8 +134,8 @@
                 <div class="mb-3">
                   <h4>Bedrooms</h4>
                   <select 
-                    [ngModel]="bedrooms()" 
-                    (ngModelChange)="bedrooms.set($event)"
+                    [ngModel]="minBedrooms()" 
+                    (ngModelChange)="minBedrooms.set($event); applyFilters()"
                     class="filter-select">
                     <option [value]="0">Any</option>
                     <option [value]="1">1+</option>
@@ -145,8 +147,8 @@
                 <div class="mb-3">
                   <h4>Bathrooms</h4>
                   <select 
-                    [ngModel]="bathrooms()" 
-                    (ngModelChange)="bathrooms.set($event)"
+                    [ngModel]="minBathrooms()" 
+                    (ngModelChange)="minBathrooms.set($event); applyFilters()"
                     class="filter-select">
                     <option [value]="0">Any</option>
                     <option [value]="1">1+</option>

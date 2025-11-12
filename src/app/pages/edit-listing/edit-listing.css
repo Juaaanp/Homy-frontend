@@ -1,0 +1,347 @@
+/* Edit Listing - Uses same styles as list-space */
+
+/* Import or reuse list-space styles */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-white {
+  background: #f9fafb;
+}
+
+/* Container */
+.ls-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+/* Header */
+.ls-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.ls-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ls-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1rem;
+  text-align: center;
+}
+
+.loading-state lucide-icon {
+  width: 48px;
+  height: 48px;
+  color: #f97316;
+  margin-bottom: 1rem;
+}
+
+.loading-state p {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* Stepper */
+.ls-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ls-step {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #9ca3af;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.ls-step.active {
+  background: #f97316;
+  color: white;
+}
+
+.ls-line {
+  width: 24px;
+  height: 2px;
+  background: #e5e7eb;
+}
+
+/* Grid */
+.ls-grid {
+  position: relative;
+}
+
+/* Card */
+.ls-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: fadeSlideIn 0.4s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ls-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Form */
+.ls-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ls-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ls-label span {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.ls-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+  background: white;
+  font-family: inherit;
+}
+
+.ls-input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.ls-input:hover {
+  border-color: #d1d5db;
+}
+
+textarea.ls-input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ls-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.ls-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Amenities */
+.ls-amenities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.ls-amenity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.ls-amenity:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.ls-amenity input:checked ~ span {
+  font-weight: 600;
+}
+
+.ls-amenity input:checked {
+  accent-color: #f97316;
+}
+
+.ls-amenity input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.ls-amenity span {
+  color: #374151;
+  font-size: 0.9375rem;
+}
+
+/* Review */
+.ls-review {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 4px solid #f97316;
+}
+
+.review-row span {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.review-row strong {
+  color: #111827;
+  text-align: right;
+}
+
+/* Actions */
+.ls-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3);
+}
+
+.btn-orange:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -1px rgba(249, 115, 22, 0.4);
+}
+
+.btn-orange:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ls-container {
+    padding: 2rem 1rem;
+  }
+
+  .ls-title {
+    font-size: 2rem;
+  }
+
+  .ls-card {
+    padding: 1.5rem;
+  }
+
+  .ls-stepper {
+    gap: 0.25rem;
+  }
+
+  .ls-step {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .ls-line {
+    width: 12px;
+  }
+
+  .ls-actions {
+    flex-direction: column-reverse;
+  }
+
+  .ls-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ls-amenities {
+    grid-template-columns: 1fr;
+  }
+}

@@ -8,11 +8,9 @@ import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { BookingService, BookingCreateDTO } from '../../services/booking.service';
 import { TokenService } from '../../services/token.service';
+import { HousingService, HousingDetails } from '../../services/housing.service';
 
 type Step = 1 | 2 | 3;
-
-const NIGHTLY_PRICE = 120;
-const MAX_GUESTS = 4;
 
 @Component({
   selector: 'app-booking',
@@ -29,14 +27,16 @@ const MAX_GUESTS = 4;
   styleUrls: ['./booking.css'],
 })
 export class BookingComponent implements OnInit {
-  // Constants
-  readonly NIGHTLY_PRICE = NIGHTLY_PRICE;
-  readonly MAX_GUESTS = MAX_GUESTS;
-
   // Property and user data
   propertyId = signal<number | null>(null);
   userId = signal<number | null>(null);
+  property = signal<HousingDetails | null>(null);
+  loading = signal(true);
   submitting = signal(false);
+  
+  // Computed property values
+  NIGHTLY_PRICE = computed(() => this.property()?.nightPrice || 120);
+  MAX_GUESTS = computed(() => this.property()?.maxCapacity || 4);
 
   // Step management
   step = signal<Step>(1);
@@ -71,8 +71,8 @@ export class BookingComponent implements OnInit {
   confirmed = signal(false);
   s3Error = signal<string | null>(null);
 
-  // Price breakdown computed
-  subtotal = computed(() => this.nights() * NIGHTLY_PRICE);
+  // Price breakdown computed (using real property data)
+  subtotal = computed(() => this.nights() * this.NIGHTLY_PRICE());
   cleaningFee = computed(() => Math.round(this.subtotal() * 0.05));
   serviceFee = computed(() => Math.round(this.subtotal() * 0.08));
   taxes = computed(() => Math.round(this.subtotal() * 0.1));
@@ -84,24 +84,12 @@ export class BookingComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private housingService: HousingService
   ) {}
 
   ngOnInit(): void {
-    // Get propertyId from route params
-    this.route.queryParams.subscribe(params => {
-      const propertyId = params['propertyId'];
-      if (propertyId) {
-        this.propertyId.set(parseInt(propertyId));
-      }
-
-      // Get dates and guests from params if provided
-      if (params['checkIn']) this.checkIn.set(params['checkIn']);
-      if (params['checkOut']) this.checkOut.set(params['checkOut']);
-      if (params['guests']) this.guests.set(parseInt(params['guests']));
-    });
-
-    // Get userId from token
+    // Get userId from token first
     const userIdStr = this.tokenService.getUserId();
     if (userIdStr) {
       this.userId.set(parseInt(userIdStr));
@@ -111,7 +99,42 @@ export class BookingComponent implements OnInit {
       this.router.navigate(['/login'], { 
         queryParams: { returnUrl: '/booking' }
       });
+      return;
     }
+
+    // Get propertyId from route params
+    this.route.queryParams.subscribe(params => {
+      const propertyId = params['propertyId'];
+      if (propertyId) {
+        this.propertyId.set(parseInt(propertyId));
+        this.loadPropertyDetails(parseInt(propertyId));
+      } else {
+        alert('Property ID is missing');
+        this.router.navigate(['/explore']);
+      }
+
+      // Get dates and guests from params if provided
+      if (params['checkIn']) this.checkIn.set(params['checkIn']);
+      if (params['checkOut']) this.checkOut.set(params['checkOut']);
+      if (params['guests']) this.guests.set(parseInt(params['guests']));
+    });
+  }
+
+  loadPropertyDetails(propertyId: number): void {
+    this.loading.set(true);
+    this.housingService.getHousingById(propertyId).subscribe({
+      next: (housing) => {
+        console.log('Loaded property details:', housing);
+        this.property.set(housing);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading property:', error);
+        alert('Could not load property details');
+        this.loading.set(false);
+        this.router.navigate(['/explore']);
+      }
+    });
   }
 
   toISODateInput(d: Date): string {
@@ -151,8 +174,8 @@ export class BookingComponent implements OnInit {
       this.s1Error.set('At least 1 guest is required.');
       return;
     }
-    if (this.guests() > MAX_GUESTS) {
-      this.s1Error.set(`Maximum capacity is ${MAX_GUESTS} guests.`);
+    if (this.guests() > this.MAX_GUESTS()) {
+      this.s1Error.set(`Maximum capacity is ${this.MAX_GUESTS()} guests.`);
       return;
     }
 

@@ -5,28 +5,24 @@
     <div class="ml-header">
       <div>
         <h1 class="ml-title">My Listings</h1>
-        <p class="ml-subtitle">Manage your properties and bookings</p>
+        <p class="ml-subtitle">Manage your properties</p>
       </div>
       <button class="btn-create" (click)="createNewListing()">
-        <lucide-icon name="plus"></lucide-icon>
-        Create New Listing
+        ➕ Create New Listing
       </button>
     </div>
 
-    <!-- Loading State -->
+    <!-- Loading -->
     <div *ngIf="loading()" class="loading-state">
-      <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
-      <p>Loading your listings...</p>
+      <p>⏳ Loading your listings...</p>
     </div>
 
     <!-- Empty State -->
     <div *ngIf="!loading() && listings().length === 0" class="empty-state">
-      <lucide-icon name="home"></lucide-icon>
-      <h3>No listings yet</h3>
+      <h3>🏠 No listings yet</h3>
       <p>Start earning by listing your property on Homy</p>
       <button class="btn-create" (click)="createNewListing()">
-        <lucide-icon name="plus"></lucide-icon>
-        Create Your First Listing
+        ➕ Create Your First Listing
       </button>
     </div>
 
@@ -34,40 +30,43 @@
     <div *ngIf="!loading() && listings().length > 0" class="ml-grid">
       <div *ngFor="let listing of listings()" class="ml-card">
         <div class="ml-image">
-          <img [src]="listing.imageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" [alt]="listing.title" />
+          <img 
+            [src]="listing.principalImage || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" 
+            [alt]="listing.title" 
+          />
           <div class="ml-badge">Active</div>
         </div>
         
         <div class="ml-content">
           <h3 class="ml-listing-title">{{ listing.title }}</h3>
           <div class="ml-location">
-            <lucide-icon name="map-pin"></lucide-icon>
-            {{ listing.city }}, {{ listing.address }}
+            📍 {{ listing.city }}{{ listing.address ? ', ' + listing.address : '' }}
           </div>
           
           <div class="ml-details">
             <div class="ml-detail">
-              <lucide-icon name="users"></lucide-icon>
-              {{ listing.maxCapacity }} guests
+              👥 {{ listing.maxCapacity || 'N/A' }} guests
             </div>
             <div class="ml-detail">
-              <lucide-icon name="dollar-sign"></lucide-icon>
-              ${{ listing.pricePerNight }}/night
+              💵 ${{ listing.nightPrice }}/night
             </div>
           </div>
 
           <div class="ml-actions">
-            <button class="btn-action btn-view" (click)="viewListing(listing.id)">
-              <lucide-icon name="eye"></lucide-icon>
-              View
+            <button 
+              class="btn-action btn-view" 
+              (click)="viewListing(listing.id)">
+              👁️ View
             </button>
-            <button class="btn-action btn-edit" (click)="editListing(listing.id)">
-              <lucide-icon name="edit"></lucide-icon>
-              Edit
+            <button 
+              class="btn-action btn-edit" 
+              (click)="editListing(listing.id)">
+              ✏️ Edit
             </button>
-            <button class="btn-action btn-delete" (click)="deleteListing(listing.id, listing.title)">
-              <lucide-icon name="trash-2"></lucide-icon>
-              Delete
+            <button 
+              class="btn-action btn-delete" 
+              (click)="deleteListing(listing.id, listing.title)">
+              🗑️ Delete
             </button>
           </div>
         </div>

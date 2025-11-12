@@ -170,10 +170,13 @@
   font-size: 0.75rem;
   font-weight: 600;
   backdrop-filter: blur(8px);
+  pointer-events: none;
 }
 
 .ml-content {
   padding: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .ml-listing-title {
@@ -199,6 +202,7 @@
   width: 16px;
   height: 16px;
   color: #f97316;
+  pointer-events: none;
 }
 
 .ml-details {
@@ -222,11 +226,14 @@
   width: 18px;
   height: 18px;
   color: #9ca3af;
+  pointer-events: none;
 }
 
 .ml-actions {
   display: flex;
   gap: 0.75rem;
+  position: relative;
+  z-index: 10;
 }
 
 .btn-action {
@@ -242,11 +249,19 @@
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid;
+  position: relative;
+  z-index: 10;
+  background-clip: padding-box;
 }
 
 .btn-action lucide-icon {
   width: 16px;
   height: 16px;
+  pointer-events: none;
+}
+
+.btn-action span {
+  pointer-events: none;
 }
 
 .btn-view {

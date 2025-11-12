@@ -125,7 +125,7 @@ export class PropertyDetailsComponent implements OnInit {
       id: housing.id.toString(),
       title: housing.title,
       description: housing.description,
-      price: housing.pricePerNight,
+      price: housing.nightPrice,
       location: `${housing.city}, ${housing.address}`,
       city: housing.city,
       country: 'Colombia',

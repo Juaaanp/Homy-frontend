@@ -1,0 +1,154 @@
+<div class="min-h-screen bg-white">
+  <app-header></app-header>
+
+  <main class="ls-container">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+      <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
+      <p>Loading property data...</p>
+    </div>
+
+    <!-- Edit Form -->
+    <ng-container *ngIf="!loading()">
+      <div class="ls-header">
+        <h1 class="ls-title">Edit Property</h1>
+        <p class="ls-subtitle">Update your listing details</p>
+      </div>
+
+      <!-- Stepper -->
+      <div class="ls-stepper">
+        <div class="ls-step" [class.active]="step() >= 1">1. Basic</div>
+        <div class="ls-line"></div>
+        <div class="ls-step" [class.active]="step() >= 2">2. Location</div>
+        <div class="ls-line"></div>
+        <div class="ls-step" [class.active]="step() >= 3">3. Pricing</div>
+        <div class="ls-line"></div>
+        <div class="ls-step" [class.active]="step() >= 4">4. Amenities</div>
+        <div class="ls-line"></div>
+        <div class="ls-step" [class.active]="step() >= 5">5. Review</div>
+      </div>
+
+      <div class="ls-grid">
+        <section class="ls-card" *ngIf="step() === 1">
+          <h2 class="ls-card-title">Basic information</h2>
+          <div class="ls-form">
+            <label class="ls-label">
+              <span>Title</span>
+              <input class="ls-input" type="text" placeholder="Cozy apartment in Medellín" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+            </label>
+            <label class="ls-label">
+              <span>Description (optional)</span>
+              <textarea class="ls-input" rows="3" placeholder="Describe your property..." [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
+            </label>
+            <label class="ls-label">
+              <span>Type</span>
+              <select class="ls-input" [ngModel]="type()" (ngModelChange)="type.set($event)">
+                <option>Apartment</option>
+                <option>House</option>
+                <option>Villa</option>
+                <option>Cabin</option>
+                <option>Loft</option>
+              </select>
+            </label>
+            <div class="ls-row">
+              <label class="ls-label">
+                <span>Guests</span>
+                <input class="ls-input" type="number" min="1" [ngModel]="guests()" (ngModelChange)="guests.set($event)" />
+              </label>
+              <label class="ls-label">
+                <span>Bedrooms</span>
+                <input class="ls-input" type="number" min="0" [ngModel]="bedrooms()" (ngModelChange)="bedrooms.set($event)" />
+              </label>
+              <label class="ls-label">
+                <span>Bathrooms</span>
+                <input class="ls-input" type="number" min="0" [ngModel]="bathrooms()" (ngModelChange)="bathrooms.set($event)" />
+              </label>
+            </div>
+            <div class="ls-error" *ngIf="!validBasic()">Please enter a title (6+ chars) and at least 1 guest.</div>
+          </div>
+          <div class="ls-actions">
+            <app-button variant="outline" (click)="cancelEdit()">Cancel</app-button>
+            <app-button (click)="next()" class="btn-orange">Continue</app-button>
+          </div>
+        </section>
+
+        <section class="ls-card" *ngIf="step() === 2">
+          <h2 class="ls-card-title">Location</h2>
+          <div class="ls-form">
+            <label class="ls-label">
+              <span>Country</span>
+              <input class="ls-input" type="text" [ngModel]="country()" (ngModelChange)="country.set($event)" />
+            </label>
+            <label class="ls-label">
+              <span>City</span>
+              <input class="ls-input" type="text" placeholder="Medellín" [ngModel]="city()" (ngModelChange)="city.set($event)" />
+            </label>
+            <label class="ls-label">
+              <span>Address</span>
+              <input class="ls-input" type="text" placeholder="Cra 1 # 2-34" [ngModel]="address()" (ngModelChange)="address.set($event)" />
+            </label>
+            <div class="ls-error" *ngIf="!validLocation()">Please provide city and address.</div>
+          </div>
+          <div class="ls-actions">
+            <app-button variant="outline" (click)="back()">Back</app-button>
+            <app-button (click)="next()" class="btn-orange">Continue</app-button>
+          </div>
+        </section>
+
+        <section class="ls-card" *ngIf="step() === 3">
+          <h2 class="ls-card-title">Pricing</h2>
+          <div class="ls-form">
+            <label class="ls-label">
+              <span>Price per night (USD)</span>
+              <input class="ls-input" type="number" min="1" [ngModel]="price()" (ngModelChange)="price.set($event)" />
+            </label>
+            <div class="ls-error" *ngIf="!validPricing()">Please set a valid price.</div>
+          </div>
+          <div class="ls-actions">
+            <app-button variant="outline" (click)="back()">Back</app-button>
+            <app-button (click)="next()" class="btn-orange">Continue</app-button>
+          </div>
+        </section>
+
+        <section class="ls-card" *ngIf="step() === 4">
+          <h2 class="ls-card-title">Amenities</h2>
+          <div class="ls-amenities">
+            <label class="ls-amenity" *ngFor="let a of amenityOptions">
+              <input type="checkbox" [checked]="amenities().includes(a)" (change)="toggleAmenity(a)" />
+              <span>{{ a }}</span>
+            </label>
+          </div>
+          <div class="ls-actions">
+            <app-button variant="outline" (click)="back()">Back</app-button>
+            <app-button (click)="next()" class="btn-orange">Continue</app-button>
+          </div>
+        </section>
+
+        <section class="ls-card" *ngIf="step() === 5">
+          <h2 class="ls-card-title">Review & update</h2>
+          <div class="ls-review">
+            <div class="review-row"><span>Title</span><strong>{{ title() }}</strong></div>
+            <div class="review-row" *ngIf="description()"><span>Description</span><strong>{{ description() }}</strong></div>
+            <div class="review-row"><span>Type</span><strong>{{ type() }}</strong></div>
+            <div class="review-row"><span>Guests</span><strong>{{ guests() }}</strong></div>
+            <div class="review-row"><span>Bedrooms</span><strong>{{ bedrooms() }}</strong></div>
+            <div class="review-row"><span>Bathrooms</span><strong>{{ bathrooms() }}</strong></div>
+            <div class="review-row"><span>Location</span><strong>{{ address() }}, {{ city() }}, {{ country() }}</strong></div>
+            <div class="review-row"><span>Price</span><strong>${{ price() }}/night</strong></div>
+            <div class="review-row"><span>Amenities</span><strong>{{ amenities().join(', ') || '—' }}</strong></div>
+          </div>
+
+          <div class="ls-actions">
+            <app-button variant="outline" (click)="back()">Back</app-button>
+            <app-button (click)="submit()" [disabled]="submitting()" class="btn-orange">
+              <lucide-icon *ngIf="submitting()" name="loader-2" class="animate-spin" style="width: 16px; height: 16px; margin-right: 8px;"></lucide-icon>
+              {{ submitting() ? 'Updating…' : 'Update Property' }}
+            </app-button>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -1,7 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { Router } from '@angular/router';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { HousingService, HousingSummary } from '../../services/housing.service';
@@ -11,14 +10,13 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-my-listings',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, HeaderComponent, FooterComponent],
   templateUrl: './my-listings.html',
   styleUrls: ['./my-listings.css']
 })
 export class MyListings implements OnInit {
   listings = signal<HousingSummary[]>([]);
   loading = signal(true);
-  hostId = signal<number | null>(null);
 
   constructor(
     private router: Router,
@@ -27,92 +25,71 @@ export class MyListings implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Check if user is HOST
     if (!this.tokenService.isLogged()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Authentication Required',
-        text: 'Please login to view your listings',
-        confirmButtonColor: '#f97316'
-      }).then(() => {
-        this.router.navigate(['/login']);
-      });
+      this.router.navigate(['/login']);
       return;
     }
 
-    const role = this.tokenService.getRole();
-    if (role !== 'HOST') {
+    if (this.tokenService.getRole() !== 'HOST') {
       Swal.fire({
         icon: 'error',
         title: 'Access Denied',
-        text: 'Only HOSTs can view listings',
+        text: 'Only HOSTs can view this page',
         confirmButtonColor: '#f97316'
-      }).then(() => {
-        this.router.navigate(['/']);
       });
+      this.router.navigate(['/']);
       return;
     }
 
     const userId = this.tokenService.getUserId();
     if (userId) {
-      const numericId = parseInt(userId);
-      this.hostId.set(numericId);
-      this.loadListings(numericId);
+      this.loadListings(parseInt(userId));
     }
   }
 
   loadListings(hostId: number) {
+    this.loading.set(true);
+    
     this.housingService.getHousingsByHost(hostId, 0, 50).subscribe({
       next: (response) => {
+        console.log('✅ Listings loaded:', response.content);
         this.listings.set(response.content);
         this.loading.set(false);
-        
-        // Show info if no listings yet
-        if (response.content.length === 0) {
-          Swal.fire({
-            icon: 'info',
-            title: 'No listings yet',
-            html: 'You haven\'t created any properties yet.<br><br>Note: The backend endpoint <code>GET /housings/host/{hostId}</code> needs to be implemented to show your listings here.',
-            confirmButtonColor: '#f97316',
-            confirmButtonText: 'Create First Listing'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.createNewListing();
-            }
-          });
-        }
       },
       error: (error) => {
-        console.error('Error loading listings:', error);
+        console.error('❌ Error loading listings:', error);
         this.loading.set(false);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to load your listings',
-          confirmButtonColor: '#f97316'
-        });
+        
+        if (error.status === 404) {
+          this.listings.set([]);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load your listings',
+            confirmButtonColor: '#f97316'
+          });
+        }
       }
     });
   }
 
   viewListing(id: number) {
+    console.log('👁️ View listing:', id);
     this.router.navigate(['/property', id]);
   }
 
   editListing(id: number) {
-    // TODO: Implement edit functionality
-    Swal.fire({
-      icon: 'info',
-      title: 'Coming Soon',
-      text: 'Edit functionality will be available soon',
-      confirmButtonColor: '#f97316'
-    });
+    console.log('✏️ Edit listing:', id);
+    this.router.navigate(['/host/edit', id]);
   }
 
   deleteListing(id: number, title: string) {
+    console.log('🗑️ Delete listing:', id, title);
+    
     Swal.fire({
       title: 'Delete Listing?',
-      text: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      html: `Are you sure you want to delete <strong>"${title}"</strong>?<br><br>This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
@@ -126,21 +103,23 @@ export class MyListings implements OnInit {
             Swal.fire({
               icon: 'success',
               title: 'Deleted!',
-              text: 'Your listing has been deleted',
-              confirmButtonColor: '#f97316'
+              text: 'Your listing has been deleted successfully',
+              confirmButtonColor: '#f97316',
+              timer: 2000
             });
+            
             // Reload listings
-            const hostId = this.hostId();
-            if (hostId) {
-              this.loadListings(hostId);
+            const userId = this.tokenService.getUserId();
+            if (userId) {
+              this.loadListings(parseInt(userId));
             }
           },
           error: (error) => {
-            console.error('Error deleting listing:', error);
+            console.error('❌ Error deleting:', error);
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: 'Failed to delete listing',
+              text: error.error?.message || 'Failed to delete listing',
               confirmButtonColor: '#f97316'
             });
           }

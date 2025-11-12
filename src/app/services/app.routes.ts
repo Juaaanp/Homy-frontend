@@ -12,6 +12,7 @@ import { UserProfile } from '../pages/user-profile/user-profile';
 import { ForgotPassword } from '../pages/forgot-password/forgot-password';
 import { VerifyCode } from '../pages/verify-code/verify-code';
 import { ResetPassword } from '../pages/reset-password/reset-password';
+import { EditListing } from '../pages/edit-listing/edit-listing';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
@@ -27,6 +28,7 @@ export const routes: Routes = [
     { path: 'bookings', component: MyBookings, canActivate: [authGuard] },
     { path: 'host/list', component: ListSpace, canActivate: [authGuard] },
     { path: 'host/listings', component: MyListings, canActivate: [authGuard] },
+    { path: 'host/edit/:id', component: EditListing, canActivate: [authGuard] },
     { path: 'profile', component: UserProfile, canActivate: [authGuard] },
     { path: '**', pathMatch: "full", redirectTo: "" }
 ];
