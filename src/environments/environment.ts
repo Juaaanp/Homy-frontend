@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'homy-backend-production.up.railway.app'
+  apiUrl: 'https://homy-backend-production.up.railway.app'
 };
