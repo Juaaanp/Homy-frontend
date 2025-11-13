@@ -68,6 +68,7 @@ export class PropertyService {
     if (page !== undefined) params = params.set('page', page.toString());
     if (size !== undefined) params = params.set('size', size.toString());
     params = params.set('minPrice', '0');
+    params = params.set('maxPrice', '100000000');
 
     return this.http.get<ResponseDTO>(this.housingsURL, { params });
   }
