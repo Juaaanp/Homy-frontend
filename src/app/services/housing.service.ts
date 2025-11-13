@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { TokenService } from './token.service';
+import { environment } from '../../environments/environment';
+
 
 // Backend DTOs
 export interface CreateHousingDTO {
@@ -74,7 +76,7 @@ export interface EntityCreatedResponse {
 })
 export class HousingService {
   private apiUrl = 'http://localhost:8080/housings';
-
+private houseURL = `${environment.apiUrl}/housings`;
   constructor(
     private http: HttpClient,
     private tokenService: TokenService
@@ -93,7 +95,7 @@ export class HousingService {
    */
   createHousing(housing: CreateHousingDTO): Observable<EntityCreatedResponse> {
     return this.http.post<EntityCreatedResponse>(
-      `${this.apiUrl}/create`,
+      `${this.houseURL}/create`,
       housing,
       { headers: this.getAuthHeaders() }
     ).pipe(
@@ -118,7 +120,7 @@ export class HousingService {
     }
 
     return this.http.get<PageResponse<HousingSummary>>(
-      this.apiUrl,
+      this.houseURL,
       { 
         headers: this.getAuthHeaders(),
         params 
@@ -136,7 +138,7 @@ export class HousingService {
    */
   getHousingById(id: number): Observable<HousingDetails> {
     return this.http.get<ResponseDTO<HousingDetails>>(
-      `${this.apiUrl}/${id}`,
+      `${this.houseURL}/${id}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
       map(response => response.data),
@@ -156,7 +158,7 @@ export class HousingService {
       .set('size', size.toString());
 
     return this.http.get<PageResponse<HousingSummary>>(
-      `${this.apiUrl}/host/${hostId}`,
+      `${this.houseURL}/host/${hostId}`,
       { 
         headers: this.getAuthHeaders(),
         params 
@@ -181,7 +183,7 @@ export class HousingService {
    */
   updateHousing(id: number, housing: CreateHousingDTO): Observable<ResponseDTO<HousingDetails>> {
     return this.http.put<ResponseDTO<HousingDetails>>(
-      `${this.apiUrl}/${id}`,
+      `${this.houseURL}/${id}`,
       housing,
       { headers: this.getAuthHeaders() }
     ).pipe(
@@ -197,7 +199,7 @@ export class HousingService {
    */
   deleteHousing(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/${id}`,
+      `${this.houseURL}/${id}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(error => {
