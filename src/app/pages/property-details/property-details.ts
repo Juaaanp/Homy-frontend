@@ -95,10 +95,17 @@ export class PropertyDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Obtener ID de la ruta
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadProperty(id);
+    
+    if (!id) {
+      // Si no hay ID, redirigir a explore
+      this.router.navigate(['/explore']);
+      return;
     }
+    
+    // Cargar la propiedad
+    this.loadProperty(id);
     
     // Cargar fechas y huéspedes desde query params si vienen de explore
     this.route.queryParams.subscribe(params => {
@@ -117,73 +124,54 @@ export class PropertyDetailsComponent implements OnInit {
   loadProperty(id: string) {
     this.loading.set(true);
     
-    console.log('🔵 Loading property details for ID:', id);
-    
-    // Try to load from backend first
+    // Convertir ID a número
     const numericId = parseInt(id);
-    if (!isNaN(numericId)) {
-      console.log('🔵 Fetching housing from backend, ID:', numericId);
-      this.housingService.getHousingById(numericId).subscribe({
-        next: (housing) => {
-          console.log('✅ Housing loaded successfully:', housing);
-          const property = this.mapHousingToProperty(housing);
-          console.log('✅ Mapped property:', property);
-          this.property.set(property);
-          this.loading.set(false);
-          // Cargar estado de favorito y contador
-          this.loadFavoriteStatus(numericId);
-          // Cargar comentarios
-          this.loadComments(numericId);
-          // Verificar si es host
-          this.checkIfHost();
-        },
-        error: (error) => {
-          console.error('Error loading housing from backend:', error);
-          this.loading.set(false);
-          
-          // Si es 404 o 400, mostrar error al usuario
-          if (error.status === 404 || error.status === 400) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Property Not Found',
-              text: 'The property you are looking for does not exist or has been removed.',
-              confirmButtonColor: '#f97316'
-            }).then(() => {
-              this.router.navigate(['/explore']);
-            });
-            this.property.set(null);
-          } else {
-            // Para otros errores, mostrar mensaje genérico
-            Swal.fire({
-              icon: 'error',
-              title: 'Error Loading Property',
-              text: 'There was an error loading the property details. Please try again later.',
-              confirmButtonColor: '#f97316'
-            }).then(() => {
-              this.router.navigate(['/explore']);
-            });
-            this.property.set(null);
-          }
-        }
+    
+    if (isNaN(numericId) || numericId <= 0) {
+      this.loading.set(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property ID',
+        text: 'The property ID is invalid.',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/explore']);
       });
-    } else {
-      // Load mock data for non-numeric IDs
-      this.loadMockProperty(id);
+      return;
     }
-  }
-
-  loadMockProperty(id: string) {
-    this.propertyService.getPropertyById(id).subscribe({
-      next: (property) => {
+    
+    // Cargar desde el backend
+    this.housingService.getHousingById(numericId).subscribe({
+      next: (housing) => {
+        const property = this.mapHousingToProperty(housing);
         this.property.set(property);
         this.loading.set(false);
+        // Cargar estado de favorito y contador
+        this.loadFavoriteStatus(numericId);
+        // Cargar comentarios
+        this.loadComments(numericId);
+        // Verificar si es host
+        this.checkIfHost();
       },
       error: (error) => {
-        console.error('Error loading property:', error);
         this.loading.set(false);
+        
+        // Mostrar error y redirigir
+        Swal.fire({
+          icon: 'error',
+          title: 'Property Not Found',
+          text: error.status === 404 
+            ? 'The property you are looking for does not exist or has been removed.'
+            : 'There was an error loading the property details. Please try again later.',
+          confirmButtonColor: '#f97316'
+        }).then(() => {
+          this.router.navigate(['/explore']);
+        });
+        this.property.set(null);
       }
     });
   }
+
 
   mapHousingToProperty(housing: HousingDetails): any {
     // Backend HousingResponse: images is List<String>, not List<HousingImage>
