@@ -12,6 +12,7 @@ import { UserProfile } from '../pages/user-profile/user-profile';
 import { ForgotPassword } from '../pages/forgot-password/forgot-password';
 import { VerifyCode } from '../pages/verify-code/verify-code';
 import { ResetPassword } from '../pages/reset-password/reset-password';
+import { FavoritesComponent } from '../pages/favorites/favorites';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
@@ -28,6 +29,7 @@ export const routes: Routes = [
     { path: 'host/list', component: ListSpace, canActivate: [authGuard] },
     { path: 'host/listings', component: MyListings, canActivate: [authGuard] },
     { path: 'profile', component: UserProfile, canActivate: [authGuard] },
+    { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
     { path: '**', pathMatch: "full", redirectTo: "" }
 ];
 

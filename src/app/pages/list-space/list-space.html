@@ -3,8 +3,11 @@
 
   <main class="ls-container">
     <div class="ls-header">
-      <h1 class="ls-title">List your space</h1>
-      <p class="ls-subtitle">Create a new listing in a few guided steps</p>
+      <h1 class="ls-title">{{ editingHousingId() ? 'Edit your space' : 'List your space' }}</h1>
+      <p class="ls-subtitle">{{ editingHousingId() ? 'Update your listing information' : 'Create a new listing in a few guided steps' }}</p>
+      @if (loadingHousing()) {
+        <p class="text-orange-500">Loading property data...</p>
+      }
     </div>
 
     <!-- Stepper -->

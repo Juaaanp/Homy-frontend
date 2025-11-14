@@ -9,7 +9,7 @@ import { ResponseDTO } from '../models/response-dto';
 })
 export class ImageService {
   private http = inject(HttpClient);
-  private imageUrl = `${environment.apiUrl}/imagenes`;
+  private imageUrl = `${environment.apiUrl}/api/images`;
 
   constructor() { }
 

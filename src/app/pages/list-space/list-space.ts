@@ -1,12 +1,12 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { ButtonComponent } from '../../components/button/button.component';
-import { HousingService, CreateHousingDTO } from '../../services/housing.service';
+import { HousingService, CreateHousingDTO, HousingDetails } from '../../services/housing.service';
 import { TokenService } from '../../services/token.service';
 import Swal from 'sweetalert2';
 
@@ -48,6 +48,10 @@ export class ListSpace implements OnInit {
   amenityOptions = ['WiFi', 'Air Conditioning', 'Parking', 'Pool', 'Pet Friendly'];
   amenities = signal<string[]>([]);
 
+  // Edit mode
+  editingHousingId = signal<number | null>(null);
+  loadingHousing = signal(false);
+
   // Derived
   validBasic = computed(() => this.title().trim().length >= 6 && this.guests() >= 1);
   validLocation = computed(() => this.city().trim().length >= 2 && this.address().trim().length >= 6);
@@ -55,6 +59,7 @@ export class ListSpace implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private housingService: HousingService,
     private tokenService: TokenService
   ) {}
@@ -107,7 +112,63 @@ export class ListSpace implements OnInit {
     } else {
       // User is HOST, allow access
       console.log('✅ User is HOST, access granted');
+      
+      // Check if we're editing an existing housing
+      this.route.queryParams.subscribe(params => {
+        const editId = params['edit'];
+        if (editId) {
+          const numericId = parseInt(editId);
+          if (!isNaN(numericId)) {
+            this.editingHousingId.set(numericId);
+            this.loadHousingForEdit(numericId);
+          }
+        }
+      });
     }
+  }
+
+  loadHousingForEdit(housingId: number) {
+    this.loadingHousing.set(true);
+    this.housingService.getHousingById(housingId).subscribe({
+      next: (housing: HousingDetails) => {
+        // Populate form with existing data
+        this.title.set(housing.title);
+        this.description.set(housing.description);
+        this.city.set(housing.city);
+        this.address.set(housing.address);
+        this.latitude.set(housing.latitude);
+        this.longitude.set(housing.length); // Note: backend uses "length"
+        this.guests.set(housing.maxCapacity);
+        this.price.set(housing.pricePerNight);
+        
+        // Map services back to amenities
+        const amenityMap: { [key: string]: string } = {
+          'WIFI': 'WiFi',
+          'AIR_CONDITIONING': 'Air Conditioning',
+          'PARKING': 'Parking',
+          'POOL': 'Pool',
+          'PETS_ALLOWED': 'Pet Friendly'
+        };
+        const mappedAmenities = housing.services
+          .map(s => amenityMap[s])
+          .filter(a => a !== undefined);
+        this.amenities.set(mappedAmenities);
+        
+        this.loadingHousing.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading housing for edit:', error);
+        this.loadingHousing.set(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load property data for editing',
+          confirmButtonColor: '#f97316'
+        }).then(() => {
+          this.router.navigate(['/host/listings']);
+        });
+      }
+    });
   }
 
   toggleAmenity(a: string) {
@@ -166,35 +227,70 @@ export class ListSpace implements OnInit {
     });
     console.log('📤 Sending JSON:', JSON.stringify(housingData, null, 2));
 
-    this.housingService.createHousing(housingData).subscribe({
-      next: (response) => {
-        this.submitting.set(false);
-        this.submitted.set(true);
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Property Listed!',
-          text: response.message || 'Your property has been successfully listed',
-          confirmButtonColor: '#f97316'
-        }).then(() => {
-          this.router.navigate(['/']);
-        });
-      },
-      error: (error) => {
-        this.submitting.set(false);
-        console.error('Error creating housing:', error);
-        
-        const errorMsg = error.error?.message || 'Failed to create property. Please try again.';
-        this.errorMessage.set(errorMsg);
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: errorMsg,
-          confirmButtonColor: '#f97316'
-        });
-      }
-    });
+    const editId = this.editingHousingId();
+    if (editId) {
+      // Update existing housing
+      this.housingService.updateHousing(editId, housingData).subscribe({
+        next: (response) => {
+          this.submitting.set(false);
+          this.submitted.set(true);
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Property Updated!',
+            text: response.message || 'Your property has been successfully updated',
+            confirmButtonColor: '#f97316'
+          }).then(() => {
+            this.router.navigate(['/host/listings']);
+          });
+        },
+        error: (error) => {
+          this.submitting.set(false);
+          console.error('Error updating housing:', error);
+          
+          const errorMsg = error.error?.message || error.error?.error || 'Failed to update property. Please try again.';
+          this.errorMessage.set(errorMsg);
+          
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMsg,
+            confirmButtonColor: '#f97316'
+          });
+        }
+      });
+    } else {
+      // Create new housing
+      this.housingService.createHousing(housingData).subscribe({
+        next: (response) => {
+          this.submitting.set(false);
+          this.submitted.set(true);
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Property Listed!',
+            text: response.message || 'Your property has been successfully listed',
+            confirmButtonColor: '#f97316'
+          }).then(() => {
+            this.router.navigate(['/']);
+          });
+        },
+        error: (error) => {
+          this.submitting.set(false);
+          console.error('Error creating housing:', error);
+          
+          const errorMsg = error.error?.message || error.error?.error || 'Failed to create property. Please try again.';
+          this.errorMessage.set(errorMsg);
+          
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMsg,
+            confirmButtonColor: '#f97316'
+          });
+        }
+      });
+    }
   }
 
   goHome() {

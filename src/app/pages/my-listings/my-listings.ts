@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule, Edit, Trash2, Eye, Plus, Loader2, Home, MapPin, Users, DollarSign } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { HousingService, HousingSummary } from '../../services/housing.service';
@@ -19,6 +19,17 @@ export class MyListings implements OnInit {
   listings = signal<HousingSummary[]>([]);
   loading = signal(true);
   hostId = signal<number | null>(null);
+  
+  // Icons
+  Edit = Edit;
+  Trash2 = Trash2;
+  Eye = Eye;
+  Plus = Plus;
+  Loader2 = Loader2;
+  Home = Home;
+  MapPin = MapPin;
+  Users = Users;
+  DollarSign = DollarSign;
 
   constructor(
     private router: Router,
@@ -100,12 +111,9 @@ export class MyListings implements OnInit {
   }
 
   editListing(id: number) {
-    // TODO: Implement edit functionality
-    Swal.fire({
-      icon: 'info',
-      title: 'Coming Soon',
-      text: 'Edit functionality will be available soon',
-      confirmButtonColor: '#f97316'
+    // Navigate to edit page with housing ID
+    this.router.navigate(['/host/list'], {
+      queryParams: { edit: id }
     });
   }
 

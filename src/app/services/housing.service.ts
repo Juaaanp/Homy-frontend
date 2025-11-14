@@ -75,8 +75,7 @@ export interface EntityCreatedResponse {
   providedIn: 'root'
 })
 export class HousingService {
-  private apiUrl = 'http://localhost:8080/housings';
-private houseURL = `${environment.apiUrl}/housings`;
+  private houseURL = `${environment.apiUrl}/housings`;
   constructor(
     private http: HttpClient,
     private tokenService: TokenService
@@ -99,7 +98,7 @@ private houseURL = `${environment.apiUrl}/housings`;
       housing,
       { headers: this.getAuthHeaders() }
     ).pipe(
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error creating housing:', error);
         return throwError(() => error);
       })
@@ -108,16 +107,28 @@ private houseURL = `${environment.apiUrl}/housings`;
 
   /**
    * Get all housings with pagination and filters
+   * Backend requires: city, checkIn, checkOut, minPrice, maxPrice, indexPage
    */
-  getAllHousings(page: number = 0, size: number = 10, city?: string): Observable<PageResponse<HousingSummary>> {
+  getAllHousings(
+    page: number = 0, 
+    size: number = 10, 
+    city: string = 'Bogotá', 
+    checkIn?: string, 
+    checkOut?: string, 
+    minPrice: number = 0, 
+    maxPrice: number = 100000000
+  ): Observable<PageResponse<HousingSummary>> {
+    // Default dates if not provided (today and 30 days from now)
+    const defaultCheckIn = checkIn || new Date().toISOString().split('T')[0];
+    const defaultCheckOut = checkOut || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('minPrice', 0);
-    
-    if (city) {
-      params = params.set('city', city);
-    }
+      .set('city', city)
+      .set('checkIn', defaultCheckIn)
+      .set('checkOut', defaultCheckOut)
+      .set('minPrice', minPrice.toString())
+      .set('maxPrice', maxPrice.toString())
+      .set('indexPage', page.toString());
 
     return this.http.get<PageResponse<HousingSummary>>(
       this.houseURL,
@@ -126,7 +137,7 @@ private houseURL = `${environment.apiUrl}/housings`;
         params 
       }
     ).pipe(
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error fetching housings:', error);
         return throwError(() => error);
       })
@@ -135,15 +146,34 @@ private houseURL = `${environment.apiUrl}/housings`;
 
   /**
    * Get housing by ID
+   * Backend returns HousingResponse directly, not wrapped in ResponseDTO
+   * Note: This endpoint doesn't require authentication, but we send token anyway for consistency
    */
   getHousingById(id: number): Observable<HousingDetails> {
-    return this.http.get<ResponseDTO<HousingDetails>>(
+    // Try with auth headers first, fallback to no auth if 401
+    const token = this.tokenService.getToken();
+    const headers = token 
+      ? this.getAuthHeaders() 
+      : new HttpHeaders({ 'Content-Type': 'application/json' });
+    
+    return this.http.get<HousingDetails>(
       `${this.houseURL}/${id}`,
-      { headers: this.getAuthHeaders() }
+      { headers }
     ).pipe(
-      map(response => response.data),
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error fetching housing details:', error);
+        // If 401, try without auth
+        if (error.status === 401 && token) {
+          return this.http.get<HousingDetails>(
+            `${this.houseURL}/${id}`,
+            { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+          ).pipe(
+            catchError((err: any) => {
+              console.error('Error fetching housing details (no auth):', err);
+              return throwError(() => err);
+            })
+          );
+        }
         return throwError(() => error);
       })
     );
@@ -164,7 +194,7 @@ private houseURL = `${environment.apiUrl}/housings`;
         params 
       }
     ).pipe(
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error fetching host housings:', error);
         return throwError(() => error);
       })
@@ -180,14 +210,15 @@ private houseURL = `${environment.apiUrl}/housings`;
 
   /**
    * Update housing (HOST only)
+   * Backend uses POST /housings/edit/{housingId}
    */
-  updateHousing(id: number, housing: CreateHousingDTO): Observable<ResponseDTO<HousingDetails>> {
-    return this.http.put<ResponseDTO<HousingDetails>>(
-      `${this.houseURL}/${id}`,
+  updateHousing(id: number, housing: CreateHousingDTO): Observable<EntityCreatedResponse> {
+    return this.http.post<EntityCreatedResponse>(
+      `${this.houseURL}/edit/${id}`,
       housing,
       { headers: this.getAuthHeaders() }
     ).pipe(
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error updating housing:', error);
         return throwError(() => error);
       })
@@ -196,14 +227,61 @@ private houseURL = `${environment.apiUrl}/housings`;
 
   /**
    * Delete housing (HOST only)
+   * Backend uses DELETE /housings/delete/{housingId}
    */
   deleteHousing(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.houseURL}/${id}`,
+      `${this.houseURL}/delete/${id}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error deleting housing:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get housing metrics (bookings count and average rating)
+   * Backend endpoint: GET /housings/{housingId}/metrics?dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD
+   */
+  getHousingMetrics(housingId: number, dateFrom?: string, dateTo?: string): Observable<any> {
+    let params = new HttpParams();
+    if (dateFrom) params = params.set('dateFrom', dateFrom);
+    if (dateTo) params = params.set('dateTo', dateTo);
+    
+    return this.http.get<any>(
+      `${this.houseURL}/${housingId}/metrics`,
+      { 
+        headers: this.getAuthHeaders(),
+        params 
+      }
+    ).pipe(
+      catchError((error: any) => {
+        console.error('Error fetching housing metrics:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get availability calendar for a housing
+   * Backend endpoint: GET /housings/{housingId}/availability?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+   */
+  getAvailabilityCalendar(housingId: number, startDate?: string, endDate?: string): Observable<any> {
+    let params = new HttpParams();
+    if (startDate) params = params.set('startDate', startDate);
+    if (endDate) params = params.set('endDate', endDate);
+    
+    return this.http.get<any>(
+      `${this.houseURL}/${housingId}/availability`,
+      { 
+        headers: this.getAuthHeaders(),
+        params 
+      }
+    ).pipe(
+      catchError((error: any) => {
+        console.error('Error fetching availability calendar:', error);
         return throwError(() => error);
       })
     );

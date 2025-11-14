@@ -131,7 +131,8 @@ export class UserService {
   }
 
   /**
-   * Update password (future implementation - needs backend endpoint)
+   * Update password (requires current password)
+   * Backend endpoint: PUT /users/{id}/password
    */
   public updatePassword(currentPassword: string, newPassword: string): Observable<any> {
     const userId = this.tokenService.getUserId();
@@ -139,9 +140,16 @@ export class UserService {
       return throwError(() => new Error('User not authenticated'));
     }
     
-    // This would need a backend endpoint like PUT /users/{id}/password
-    console.warn('Password update not yet implemented in backend');
-    return throwError(() => new Error('Password update endpoint not available'));
+    return this.http.put<any>(`${this.usersURL}/${userId}/password`, {
+      currentPassword,
+      newPassword
+    }).pipe(
+      catchError((error) => {
+        console.error('Error updating password:', error);
+        const message = error.error?.error || error.error?.message || 'Error al actualizar la contraseña';
+        return throwError(() => new Error(message));
+      })
+    );
   }
 
   /**

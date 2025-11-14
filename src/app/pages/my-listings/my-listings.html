@@ -8,24 +8,24 @@
         <p class="ml-subtitle">Manage your properties and bookings</p>
       </div>
       <button class="btn-create" (click)="createNewListing()">
-        <lucide-icon name="plus"></lucide-icon>
+        <lucide-icon [img]="Plus"></lucide-icon>
         Create New Listing
       </button>
     </div>
 
     <!-- Loading State -->
     <div *ngIf="loading()" class="loading-state">
-      <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
+      <lucide-icon [img]="Loader2" class="animate-spin"></lucide-icon>
       <p>Loading your listings...</p>
     </div>
 
     <!-- Empty State -->
     <div *ngIf="!loading() && listings().length === 0" class="empty-state">
-      <lucide-icon name="home"></lucide-icon>
+      <lucide-icon [img]="Home"></lucide-icon>
       <h3>No listings yet</h3>
       <p>Start earning by listing your property on Homy</p>
       <button class="btn-create" (click)="createNewListing()">
-        <lucide-icon name="plus"></lucide-icon>
+        <lucide-icon [img]="Plus"></lucide-icon>
         Create Your First Listing
       </button>
     </div>
@@ -41,32 +41,32 @@
         <div class="ml-content">
           <h3 class="ml-listing-title">{{ listing.title }}</h3>
           <div class="ml-location">
-            <lucide-icon name="map-pin"></lucide-icon>
+            <lucide-icon [img]="MapPin"></lucide-icon>
             {{ listing.city }}, {{ listing.address }}
           </div>
           
           <div class="ml-details">
             <div class="ml-detail">
-              <lucide-icon name="users"></lucide-icon>
+              <lucide-icon [img]="Users"></lucide-icon>
               {{ listing.maxCapacity }} guests
             </div>
             <div class="ml-detail">
-              <lucide-icon name="dollar-sign"></lucide-icon>
+              <lucide-icon [img]="DollarSign"></lucide-icon>
               ${{ listing.pricePerNight }}/night
             </div>
           </div>
 
           <div class="ml-actions">
             <button class="btn-action btn-view" (click)="viewListing(listing.id)">
-              <lucide-icon name="eye"></lucide-icon>
+              <lucide-icon [img]="Eye"></lucide-icon>
               View
             </button>
             <button class="btn-action btn-edit" (click)="editListing(listing.id)">
-              <lucide-icon name="edit"></lucide-icon>
+              <lucide-icon [img]="Edit"></lucide-icon>
               Edit
             </button>
             <button class="btn-action btn-delete" (click)="deleteListing(listing.id, listing.title)">
-              <lucide-icon name="trash-2"></lucide-icon>
+              <lucide-icon [img]="Trash2"></lucide-icon>
               Delete
             </button>
           </div>

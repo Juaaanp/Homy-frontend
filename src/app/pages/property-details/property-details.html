@@ -37,9 +37,9 @@
             <lucide-icon [img]="Share2" [strokeWidth]="2"></lucide-icon>
             Share
           </button>
-          <button class="action-btn">
-            <lucide-icon [img]="Heart" [strokeWidth]="2"></lucide-icon>
-            Save
+          <button class="action-btn" (click)="toggleFavorite()" [class.favorited]="isFavorite()">
+            <lucide-icon [img]="Heart" [strokeWidth]="2" [class.filled]="isFavorite()"></lucide-icon>
+            {{ isFavorite() ? 'Saved' : 'Save' }}
           </button>
         </div>
       </div>
@@ -123,6 +123,15 @@
                 <p class="location-city">{{ property()?.city }}, {{ property()?.country }}</p>
               </div>
             </div>
+            @if (property()?.coordinates?.lat && property()?.coordinates?.lng) {
+              <div class="map-wrapper">
+                <app-map 
+                  [latitude]="property()?.coordinates?.lat" 
+                  [longitude]="property()?.coordinates?.lng"
+                  [title]="property()?.title">
+                </app-map>
+              </div>
+            }
           </section>
         </div>
 

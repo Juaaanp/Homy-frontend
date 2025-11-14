@@ -4,13 +4,15 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule, Star, MapPin, Users, Bed, Bath, Wifi, Car, Tv, Wind, Calendar, Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-angular';
 import { PropertyService } from '../../services/property.service';
 import { HousingService, HousingDetails } from '../../services/housing.service';
+import { FavoriteService } from '../../services/favorite.service';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
+import { MapComponent } from '../../components/map/map.component';
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, FooterComponent, MapComponent],
   templateUrl: './property-details.html',
   styleUrls: ['./property-details.css']
 })
@@ -38,6 +40,8 @@ export class PropertyDetailsComponent implements OnInit {
   checkInDate = signal('');
   checkOutDate = signal('');
   guests = signal(1);
+  isFavorite = signal(false);
+  favoriteCount = signal(0);
 
   // Computed
   currentImage = computed(() => {
@@ -73,7 +77,8 @@ export class PropertyDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private propertyService: PropertyService,
-    private housingService: HousingService
+    private housingService: HousingService,
+    private favoriteService: FavoriteService
   ) {}
 
   ngOnInit() {
@@ -94,6 +99,8 @@ export class PropertyDetailsComponent implements OnInit {
           const property = this.mapHousingToProperty(housing);
           this.property.set(property);
           this.loading.set(false);
+          // Cargar estado de favorito y contador
+          this.loadFavoriteStatus(numericId);
         },
         error: (error) => {
           console.error('Error loading housing from backend:', error);
@@ -201,5 +208,43 @@ export class PropertyDetailsComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/explore']);
+  }
+
+  toggleFavorite() {
+    const propertyId = this.property()?.id;
+    if (!propertyId) return;
+
+    const numericId = parseInt(propertyId);
+    if (this.isFavorite()) {
+      this.favoriteService.removeFavorite(numericId).subscribe({
+        next: () => {
+          this.isFavorite.set(false);
+          this.favoriteCount.set(this.favoriteCount() - 1);
+        },
+        error: (error) => console.error('Error removing favorite:', error)
+      });
+    } else {
+      this.favoriteService.addFavorite(numericId).subscribe({
+        next: () => {
+          this.isFavorite.set(true);
+          this.favoriteCount.set(this.favoriteCount() + 1);
+        },
+        error: (error) => console.error('Error adding favorite:', error)
+      });
+    }
+  }
+
+  private loadFavoriteStatus(housingId: number) {
+    // Cargar contador de favoritos (público)
+    this.favoriteService.getFavoriteCount(housingId).subscribe({
+      next: (count) => this.favoriteCount.set(count),
+      error: () => this.favoriteCount.set(0)
+    });
+
+    // Cargar si es favorito del usuario (requiere autenticación)
+    this.favoriteService.isFavorite(housingId).subscribe({
+      next: (isFav) => this.isFavorite.set(isFav),
+      error: () => this.isFavorite.set(false)
+    });
   }
 }

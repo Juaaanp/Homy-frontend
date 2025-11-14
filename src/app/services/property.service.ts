@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ResponseDTO } from '../models/response-dto';
+import { TokenService } from './token.service';
 
 // Frontend interface for Property (for component compatibility)
 export interface Property {
@@ -32,24 +33,47 @@ export interface Property {
 })
 export class PropertyService {
   private http = inject(HttpClient);
+  private tokenService = inject(TokenService);
   private housingsURL = `${environment.apiUrl}/housings`;
 
   constructor() { }
 
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.tokenService.getToken();
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   public create(createPlaceDTO: any): Observable<ResponseDTO> {
-    return this.http.post<ResponseDTO>(`${this.housingsURL}/create`, createPlaceDTO);
+    return this.http.post<ResponseDTO>(
+      `${this.housingsURL}/create`, 
+      createPlaceDTO,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   public edit(id: number, editPlaceDTO: any): Observable<ResponseDTO> {
-    return this.http.post<ResponseDTO>(`${this.housingsURL}/edit/${id}`, editPlaceDTO);
+    return this.http.post<ResponseDTO>(
+      `${this.housingsURL}/edit/${id}`, 
+      editPlaceDTO,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   public delete(id: number): Observable<ResponseDTO> {
-    return this.http.delete<ResponseDTO>(`${this.housingsURL}/delete/${id}`);
+    return this.http.delete<ResponseDTO>(
+      `${this.housingsURL}/delete/${id}`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   public getById(id: number): Observable<ResponseDTO> {
-    return this.http.get<ResponseDTO>(`${this.housingsURL}/${id}`);
+    return this.http.get<ResponseDTO>(
+      `${this.housingsURL}/${id}`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   public getAll(
@@ -59,30 +83,37 @@ export class PropertyService {
     page: number = 0,
     size: number = 20
   ): Observable<ResponseDTO> {
-    let params = new HttpParams();
+    // Backend requires: city, checkIn, checkOut, minPrice, maxPrice, indexPage
+    const defaultCity = city || 'Bogotá';
+    const defaultCheckIn = checkIn || new Date().toISOString().split('T')[0];
+    const defaultCheckOut = checkOut || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     
-    // Backend requires city, checkIn, checkOut as query params
-    if (city) params = params.set('city', city);
-    if (checkIn) params = params.set('checkIn', checkIn);
-    if (checkOut) params = params.set('checkOut', checkOut);
-    if (page !== undefined) params = params.set('page', page.toString());
-    if (size !== undefined) params = params.set('size', size.toString());
-    params = params.set('minPrice', '0');
-    params = params.set('maxPrice', '100000000');
+    let params = new HttpParams()
+      .set('city', defaultCity)
+      .set('checkIn', defaultCheckIn)
+      .set('checkOut', defaultCheckOut)
+      .set('minPrice', '0')
+      .set('maxPrice', '100000000')
+      .set('indexPage', page.toString());
 
     return this.http.get<ResponseDTO>(this.housingsURL, { params });
   }
 
   public getComentarios(id: number, page: number = 0, size: number = 10): Observable<ResponseDTO> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-    
-    return this.http.get<ResponseDTO>(`${this.housingsURL}/${id}/comentarios`, { params });
+    // Backend uses /housings/{housingId}/comments (not comentarios)
+    return this.http.get<any>(
+      `${this.housingsURL}/${id}/comments`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   public createComentario(id: number, comentarioDTO: any): Observable<ResponseDTO> {
-    return this.http.post<ResponseDTO>(`${this.housingsURL}/${id}/comentarios`, comentarioDTO);
+    // Backend uses POST /housings/{housingId}/comments/create
+    return this.http.post<ResponseDTO>(
+      `${this.housingsURL}/${id}/comments/create`, 
+      comentarioDTO,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   // Compatibility methods for existing components

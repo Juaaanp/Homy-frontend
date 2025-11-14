@@ -102,8 +102,8 @@ export class BookingService {
   }
 
   public cancel(id: number): Observable<ResponseDTO> {
-    // Backend might have cancel endpoint - using delete for now
-    return this.http.delete<ResponseDTO>(`${this.bookingsURL}/${id}`);
+    // Backend uses PATCH /bookings/{id}/cancel
+    return this.http.patch<ResponseDTO>(`${this.bookingsURL}/${id}/cancel`, {});
   }
 
   // Compatibility methods for existing components
