@@ -133,6 +133,52 @@
               </div>
             }
           </section>
+
+          <div class="divider"></div>
+
+          <!-- Comments Section -->
+          <section class="comments-section">
+            <h3>Reviews</h3>
+            
+            @if (loadingComments()) {
+              <p>Loading reviews...</p>
+            } @else if (comments().length === 0) {
+              <p class="no-comments">No reviews yet. Be the first to review this property!</p>
+            } @else {
+              <div class="comments-list">
+                @for (comment of comments(); track comment.id) {
+                  <div class="comment-item">
+                    <div class="comment-header">
+                      <div class="comment-author">
+                        <strong>{{ comment.guestName }}</strong>
+                        <div class="comment-rating">
+                          @for (star of [1,2,3,4,5]; track star) {
+                            <lucide-icon 
+                              [img]="Star" 
+                              [strokeWidth]="2"
+                              [class.filled]="star <= comment.rate"
+                              class="star-icon">
+                            </lucide-icon>
+                          }
+                        </div>
+                      </div>
+                      <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+                    </div>
+                    <p class="comment-content">{{ comment.content }}</p>
+                    
+                    @if (comment.hostReply) {
+                      <div class="host-reply">
+                        <strong>Host response:</strong>
+                        <p>{{ comment.hostReply }}</p>
+                      </div>
+                    } @else if (isHost()) {
+                      <button class="reply-btn" (click)="showReplyForm(comment)">Reply</button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </section>
         </div>
 
         <!-- Booking Sidebar -->

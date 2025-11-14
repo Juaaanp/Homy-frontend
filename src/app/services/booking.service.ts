@@ -125,25 +125,45 @@ export class BookingService {
 
   // Helper to map backend response to UserBooking interface
   private mapToUserBooking(data: any): UserBooking {
+    // Backend BookingSummaryDTO fields:
+    // id, housingTitle, principalImage, city, checkIn, checkOut, guestsNumber, status, totalPrice, guestName
     const statusMap: Record<string, UserBooking['status']> = {
+      'PENDING': 'upcoming',
+      'CONFIRMED': 'upcoming',
+      'COMPLETED': 'completed',
+      'CANCELLED': 'cancelled',
       'Pendiente': 'upcoming',
       'Confirmada': 'upcoming',
       'Completada': 'completed',
       'Cancelada': 'cancelled'
     };
 
+    // Format dates from LocalDate to string
+    const formatDate = (date: any): string => {
+      if (!date) return '';
+      if (typeof date === 'string') return date;
+      // If it's a LocalDate object, convert to ISO string
+      if (date.year && date.monthValue && date.dayOfMonth) {
+        return `${date.year}-${String(date.monthValue).padStart(2, '0')}-${String(date.dayOfMonth).padStart(2, '0')}`;
+      }
+      return '';
+    };
+
+    const status = data.status || '';
+    const mappedStatus = statusMap[status] || statusMap[status.toUpperCase()] || 'upcoming';
+
     return {
       id: data.id?.toString() || '',
-      propertyId: data.alojamientoId?.toString() || '',
-      propertyTitle: data.propertyTitle || `Property #${data.alojamientoId}`,
-      propertyImage: data.propertyImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-      propertyLocation: data.propertyLocation || 'Location TBD',
-      checkIn: data.checkIn || '',
-      checkOut: data.checkOut || '',
-      guests: data.huespedes || data.guests || 1,
-      totalPrice: data.totalPrecio || data.totalPrice || 0,
-      status: statusMap[data.estado] || 'upcoming',
-      bookingDate: data.creadoEn || data.bookingDate || '',
+      propertyId: data.housingId?.toString() || '',
+      propertyTitle: data.housingTitle || `Property #${data.housingId || data.id}`,
+      propertyImage: data.principalImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
+      propertyLocation: data.city || 'Location TBD',
+      checkIn: formatDate(data.checkIn),
+      checkOut: formatDate(data.checkOut),
+      guests: data.guestsNumber || data.guests || 1,
+      totalPrice: data.totalPrice || 0,
+      status: mappedStatus,
+      bookingDate: data.createdAt || data.bookingDate || new Date().toISOString(),
       confirmationCode: `HOMY-${data.id}`,
       hostName: data.hostName || 'Host',
       hostAvatar: data.hostAvatar || 'https://i.pravatar.cc/150?img=5'

@@ -5,9 +5,12 @@ import { LucideAngularModule, Star, MapPin, Users, Bed, Bath, Wifi, Car, Tv, Win
 import { PropertyService } from '../../services/property.service';
 import { HousingService, HousingDetails } from '../../services/housing.service';
 import { FavoriteService } from '../../services/favorite.service';
+import { CommentService, Comment } from '../../services/comment.service';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { MapComponent } from '../../components/map/map.component';
+import { TokenService } from '../../services/token.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-property-details',
@@ -43,6 +46,13 @@ export class PropertyDetailsComponent implements OnInit {
   guests = signal(1);
   isFavorite = signal(false);
   favoriteCount = signal(0);
+  
+  // Comments
+  comments = signal<Comment[]>([]);
+  loadingComments = signal(false);
+  showCommentForm = signal(false);
+  newComment = signal({ rate: 5, content: '', bookingId: 0 });
+  isHost = signal(false);
 
   // Computed
   currentImage = computed(() => {
@@ -79,7 +89,9 @@ export class PropertyDetailsComponent implements OnInit {
     private router: Router,
     private propertyService: PropertyService,
     private housingService: HousingService,
-    private favoriteService: FavoriteService
+    private favoriteService: FavoriteService,
+    private commentService: CommentService,
+    private tokenService: TokenService
   ) {}
 
   ngOnInit() {
@@ -102,6 +114,10 @@ export class PropertyDetailsComponent implements OnInit {
           this.loading.set(false);
           // Cargar estado de favorito y contador
           this.loadFavoriteStatus(numericId);
+          // Cargar comentarios
+          this.loadComments(numericId);
+          // Verificar si es host
+          this.checkIfHost();
         },
         error: (error) => {
           console.error('Error loading housing from backend:', error);
@@ -252,6 +268,139 @@ export class PropertyDetailsComponent implements OnInit {
     this.favoriteService.isFavorite(housingId).subscribe({
       next: (isFav) => this.isFavorite.set(isFav),
       error: () => this.isFavorite.set(false)
+    });
+  }
+
+  loadComments(housingId: number) {
+    this.loadingComments.set(true);
+    this.commentService.getComments(housingId).subscribe({
+      next: (comments) => {
+        this.comments.set(comments);
+        this.loadingComments.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading comments:', error);
+        this.loadingComments.set(false);
+        this.comments.set([]);
+      }
+    });
+  }
+
+  checkIfHost() {
+    const role = this.tokenService.getRole();
+    this.isHost.set(role === 'HOST');
+  }
+
+  submitComment() {
+    const propertyId = this.property()?.id;
+    if (!propertyId) return;
+
+    const comment = this.newComment();
+    if (!comment.content.trim() || comment.rate < 1 || comment.rate > 5) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Please provide a rating (1-5) and comment text',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+
+    const commentData = {
+      bookingId: comment.bookingId,
+      housingId: parseInt(propertyId),
+      rate: comment.rate,
+      content: comment.content.trim()
+    };
+
+    this.commentService.createComment(parseInt(propertyId), commentData).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Your comment has been posted',
+          confirmButtonColor: '#f97316'
+        });
+        this.newComment.set({ rate: 5, content: '', bookingId: 0 });
+        this.showCommentForm.set(false);
+        this.loadComments(parseInt(propertyId));
+      },
+      error: (error) => {
+        console.error('Error creating comment:', error);
+        const message = error.error?.message || error.message || 'Failed to post comment';
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: message,
+          confirmButtonColor: '#f97316'
+        });
+      }
+    });
+  }
+
+  replyingToComment = signal<number | null>(null);
+
+  showReplyForm(comment: Comment) {
+    Swal.fire({
+      title: 'Reply to Review',
+      input: 'textarea',
+      inputLabel: 'Your reply',
+      inputPlaceholder: 'Type your reply here...',
+      inputAttributes: {
+        'aria-label': 'Type your reply here'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Post Reply',
+      confirmButtonColor: '#f97316',
+      cancelButtonColor: '#6b7280',
+      inputValidator: (value) => {
+        if (!value || value.trim().length === 0) {
+          return 'You need to write something!';
+        }
+        if (value.length > 500) {
+          return 'Reply must be 500 characters or less';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.replyToComment(comment.housingId, comment.id, result.value);
+      }
+    });
+  }
+
+  replyToComment(housingId: number, commentId: number, message: string) {
+    if (!message.trim()) return;
+
+    this.commentService.replyToComment(housingId, commentId, message).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Your reply has been posted',
+          confirmButtonColor: '#f97316'
+        });
+        this.loadComments(housingId);
+      },
+      error: (error) => {
+        console.error('Error replying to comment:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to post reply',
+          confirmButtonColor: '#f97316'
+        });
+      }
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
     });
   }
 }
