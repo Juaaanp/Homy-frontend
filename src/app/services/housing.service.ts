@@ -223,9 +223,13 @@ export class HousingService {
 
   /**
    * Search housings by city
+   * NOTE: Currently returns all housings since backend endpoint is simplified
+   * TODO: Re-implement city filter when backend supports it
    */
   searchByCity(city: string, page: number = 0, size: number = 10): Observable<PageResponse<HousingSummary>> {
-    return this.getAllHousings(page, size, city);
+    // Backend endpoint is simplified and doesn't support city filter yet
+    // For now, return all housings and filter client-side if needed
+    return this.getAllHousings(page, size);
   }
 
   /**
