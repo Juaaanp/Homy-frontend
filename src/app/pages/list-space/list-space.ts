@@ -8,6 +8,7 @@ import { FooterComponent } from '../../components/footer/footer.component';
 import { ButtonComponent } from '../../components/button/button.component';
 import { HousingService, CreateHousingDTO, HousingDetails } from '../../services/housing.service';
 import { TokenService } from '../../services/token.service';
+import { ImageService } from '../../services/image.service';
 import Swal from 'sweetalert2';
 
 // Host "List your space" wizard with backend integration
@@ -48,6 +49,10 @@ export class ListSpace implements OnInit {
   amenityOptions = ['WiFi', 'Air Conditioning', 'Parking', 'Pool', 'Pet Friendly'];
   amenities = signal<string[]>([]);
 
+  // Images
+  images = signal<string[]>([]); // Array of image URLs
+  uploadingImages = signal(false);
+
   // Edit mode
   editingHousingId = signal<number | null>(null);
   loadingHousing = signal(false);
@@ -56,12 +61,14 @@ export class ListSpace implements OnInit {
   validBasic = computed(() => this.title().trim().length >= 6 && this.guests() >= 1);
   validLocation = computed(() => this.city().trim().length >= 2 && this.address().trim().length >= 6);
   validPricing = computed(() => this.price() > 0);
+  validImages = computed(() => this.images().length >= 1 && this.images().length <= 10);
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private housingService: HousingService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private imageService: ImageService
   ) {}
 
   ngOnInit() {
@@ -155,6 +162,11 @@ export class ListSpace implements OnInit {
           .filter(a => a !== undefined);
         this.amenities.set(mappedAmenities);
         
+        // Load existing images
+        if (housing.images && Array.isArray(housing.images) && housing.images.length > 0) {
+          this.images.set(housing.images);
+        }
+        
         this.loadingHousing.set(false);
       },
       error: (error) => {
@@ -182,6 +194,15 @@ export class ListSpace implements OnInit {
     if (this.step() === 1 && !this.validBasic()) return;
     if (this.step() === 2 && !this.validLocation()) return;
     if (this.step() === 3 && !this.validPricing()) return;
+    if (this.step() === 4 && !this.validImages()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Images Required',
+        text: 'Please upload at least 1 image (maximum 10 images)',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
     this.step.set((this.step() + 1) as Step);
   }
 
@@ -210,7 +231,7 @@ export class ListSpace implements OnInit {
       maxCapacity: Number(this.guests()),
       pricePerNight: Number(this.price()),
       services: this.housingService.mapAmenitiesToServices(this.amenities()),
-      imagesUrls: [] // Will be added when image upload is implemented
+      imagesUrls: this.images() // Use uploaded images
     };
 
     // Debug: Log data types and values
@@ -296,5 +317,92 @@ export class ListSpace implements OnInit {
 
   goHome() {
     this.router.navigate(['/']);
+  }
+
+  // Image upload methods
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const files = Array.from(input.files);
+      
+      // Validate number of images
+      const currentCount = this.images().length;
+      const totalCount = currentCount + files.length;
+      
+      if (totalCount > 10) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Too Many Images',
+          text: `You can only upload up to 10 images. Currently you have ${currentCount} image(s).`,
+          confirmButtonColor: '#f97316'
+        });
+        return;
+      }
+
+      // Upload each file
+      this.uploadingImages.set(true);
+      const uploadPromises = files.map(file => this.uploadImage(file));
+      
+      Promise.all(uploadPromises)
+        .then(() => {
+          this.uploadingImages.set(false);
+          Swal.fire({
+            icon: 'success',
+            title: 'Images Uploaded!',
+            text: `${files.length} image(s) uploaded successfully`,
+            confirmButtonColor: '#f97316',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        })
+        .catch((error) => {
+          this.uploadingImages.set(false);
+          console.error('Error uploading images:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload images. Please try again.',
+            confirmButtonColor: '#f97316'
+          });
+        });
+    }
+  }
+
+  uploadImage(file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.imageService.upload(file).subscribe({
+        next: (response) => {
+          // Backend returns ResponseDTO<Map> where Map is from Cloudinary
+          // ResponseDTO structure: { success: boolean, content: Map }
+          // Cloudinary Map has "url" or "secure_url" field
+          let imageUrl: string | null = null;
+          
+          if (response.content) {
+            // Try different possible structures
+            if (typeof response.content === 'string') {
+              imageUrl = response.content;
+            } else if (typeof response.content === 'object') {
+              imageUrl = (response.content as any).url || (response.content as any).secure_url;
+            }
+          }
+          
+          if (imageUrl) {
+            this.images.update(urls => [...urls, imageUrl!]);
+            resolve();
+          } else {
+            console.error('Image response structure:', response);
+            reject(new Error('Image URL not found in response'));
+          }
+        },
+        error: (error) => {
+          console.error('Error uploading image:', error);
+          reject(error);
+        }
+      });
+    });
+  }
+
+  removeImage(index: number) {
+    this.images.update(urls => urls.filter((_, i) => i !== index));
   }
 }
