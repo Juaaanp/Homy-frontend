@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { LucideAngularModule, Edit, Trash2, Eye, Plus, Loader2, Home, MapPin, Users, DollarSign } from 'lucide-angular';
+import { LucideAngularModule, Edit, Trash2, Eye, Plus, Loader2, Home, MapPin, Users, DollarSign, BarChart3 } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { HousingService, HousingSummary } from '../../services/housing.service';
@@ -30,6 +30,12 @@ export class MyListings implements OnInit {
   MapPin = MapPin;
   Users = Users;
   DollarSign = DollarSign;
+  BarChart3 = BarChart3;
+  
+  // Metrics
+  showingMetrics = signal<number | null>(null);
+  metrics = signal<any>(null);
+  loadingMetrics = signal(false);
 
   constructor(
     private router: Router,
@@ -159,5 +165,52 @@ export class MyListings implements OnInit {
 
   createNewListing() {
     this.router.navigate(['/host/list']);
+  }
+
+  showMetrics(housingId: number) {
+    this.showingMetrics.set(housingId);
+    this.loadingMetrics.set(true);
+    
+    this.housingService.getHousingMetrics(housingId).subscribe({
+      next: (data) => {
+        this.metrics.set(data);
+        this.loadingMetrics.set(false);
+        
+        Swal.fire({
+          icon: 'info',
+          title: `Métricas: ${data.housingTitle || 'Alojamiento'}`,
+          html: `
+            <div style="text-align: left; margin-top: 20px;">
+              <div style="margin-bottom: 15px;">
+                <strong>Total de Reservas:</strong> ${data.totalBookings || 0}
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong>Calificación Promedio:</strong> 
+                ${data.averageRating ? data.averageRating.toFixed(1) : 'N/A'} ⭐
+              </div>
+              ${data.dateFrom ? `<div><strong>Desde:</strong> ${data.dateFrom}</div>` : ''}
+              ${data.dateTo ? `<div><strong>Hasta:</strong> ${data.dateTo}</div>` : ''}
+            </div>
+          `,
+          confirmButtonColor: '#f97316',
+          width: '500px'
+        });
+      },
+      error: (error) => {
+        console.error('Error loading metrics:', error);
+        this.loadingMetrics.set(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las métricas',
+          confirmButtonColor: '#f97316'
+        });
+      }
+    });
+  }
+
+  closeMetrics() {
+    this.showingMetrics.set(null);
+    this.metrics.set(null);
   }
 }

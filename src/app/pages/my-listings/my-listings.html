@@ -65,6 +65,10 @@
               <lucide-icon [img]="Edit"></lucide-icon>
               Edit
             </button>
+            <button class="btn-action btn-metrics" (click)="showMetrics(listing.id)" title="Ver métricas">
+              <lucide-icon [img]="BarChart3"></lucide-icon>
+              Metrics
+            </button>
             <button class="btn-action btn-delete" (click)="deleteListing(listing.id, listing.title)">
               <lucide-icon [img]="Trash2"></lucide-icon>
               Delete
