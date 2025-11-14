@@ -238,8 +238,14 @@ export class Explore implements OnInit {
     const imageUrl = housing.principalImage || housing.imageUrl || null;
     const price = housing.nightPrice || housing.pricePerNight || 0;
     
+    // Asegurar que el ID sea válido
+    const housingId = housing.id;
+    if (!housingId || housingId <= 0) {
+      console.warn('mapHousingToProperty: Invalid housing ID:', housingId, 'for housing:', housing);
+    }
+    
     return {
-      id: String(housing.id || 0),
+      id: housingId ? String(housingId) : '',
       title: housing.title,
       description: 'Explore this amazing property',
       price: price,
@@ -328,10 +334,43 @@ export class Explore implements OnInit {
   }
   
   viewProperty(id: string | number) {
-    const propertyId = String(id);
-    if (propertyId && propertyId !== 'undefined' && propertyId !== 'null' && propertyId !== '0') {
-      this.router.navigate(['/property', propertyId]);
+    console.log('viewProperty called with id:', id, 'type:', typeof id);
+    
+    if (!id) {
+      console.error('viewProperty: No ID provided');
+      return;
     }
+    
+    const propertyId = String(id).trim();
+    console.log('viewProperty: propertyId after conversion:', propertyId);
+    
+    // Validar que el ID sea válido
+    if (!propertyId || propertyId === 'undefined' || propertyId === 'null' || propertyId === '0' || propertyId === '') {
+      console.error('viewProperty: Invalid property ID:', propertyId);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property',
+        text: 'Unable to view property details. Please try again.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    console.log('viewProperty: Navigating to /property/' + propertyId);
+    this.router.navigate(['/property', propertyId]).then(
+      (success) => {
+        console.log('viewProperty: Navigation successful:', success);
+      },
+      (error) => {
+        console.error('viewProperty: Navigation failed:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Navigation Error',
+          text: 'Unable to navigate to property details. Please try again.',
+          confirmButtonColor: '#f97316'
+        });
+      }
+    );
   }
 
   bookProperty(propertyId: string) {
