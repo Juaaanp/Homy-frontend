@@ -211,6 +211,21 @@ export class ListSpace implements OnInit {
   }
 
   submit() {
+    // Validate images before submitting
+    if (!this.validImages()) {
+      this.errorMessage.set('Please upload at least 1 image (maximum 10 images) before publishing.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Images Required',
+        text: 'Please upload at least 1 image (maximum 10 images) before publishing your listing.',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        // Go back to step 4 to upload images
+        this.step.set(4);
+      });
+      return;
+    }
+
     this.submitting.set(true);
     this.errorMessage.set('');
 
@@ -233,6 +248,21 @@ export class ListSpace implements OnInit {
       services: this.housingService.mapAmenitiesToServices(this.amenities()),
       imagesUrls: this.images() // Use uploaded images
     };
+
+    // Final validation: ensure imagesUrls is not empty
+    if (!housingData.imagesUrls || housingData.imagesUrls.length === 0) {
+      this.submitting.set(false);
+      this.errorMessage.set('Please upload at least 1 image before publishing.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Images Required',
+        text: 'You must upload at least 1 image to publish your listing. Please go back to the Images step.',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.step.set(4);
+      });
+      return;
+    }
 
     // Debug: Log data types and values
     console.log('🔍 Housing data before sending:', {

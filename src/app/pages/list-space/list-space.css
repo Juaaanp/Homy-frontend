@@ -319,6 +319,11 @@ textarea.ls-input {
   text-align: right;
 }
 
+.review-row-warning {
+  border-left-color: #dc2626 !important;
+  background: #fef2f2 !important;
+}
+
 /* Actions */
 .ls-actions {
   display: flex;

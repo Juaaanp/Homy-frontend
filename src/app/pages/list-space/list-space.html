@@ -169,14 +169,28 @@
           <div class="review-row"><span>Location</span><strong>{{ address() }}, {{ city() }}, {{ country() }}</strong></div>
           <div class="review-row"><span>Price</span><strong>${{ price() }}/night</strong></div>
           <div class="review-row"><span>Amenities</span><strong>{{ amenities().join(', ') || '—' }}</strong></div>
-          <div class="review-row"><span>Images</span><strong>{{ images().length }} image(s)</strong></div>
+          <div class="review-row" [class.review-row-warning]="images().length === 0">
+            <span>Images</span>
+            <strong [style.color]="images().length === 0 ? '#dc2626' : '#111827'">
+              {{ images().length }} image(s)
+              @if (images().length === 0) {
+                <span style="color: #dc2626; font-size: 0.875rem; display: block; margin-top: 0.25rem;">⚠️ At least 1 image required!</span>
+              }
+            </strong>
+          </div>
         </div>
+
+        @if (images().length === 0) {
+          <div class="ls-error" style="margin-top: 1rem;">
+            ⚠️ You must upload at least 1 image before publishing. Click "Back" to upload images.
+          </div>
+        }
 
         <div class="ls-error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
 
         <div class="ls-actions">
           <app-button variant="outline" (click)="back()">Back</app-button>
-          <app-button (click)="submit()" [disabled]="submitting()" class="btn-orange">
+          <app-button (click)="submit()" [disabled]="submitting() || images().length === 0" class="btn-orange">
             <span *ngIf="submitting()" class="animate-spin" style="display: inline-block; width: 16px; height: 16px; margin-right: 8px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%;"></span>
             {{ submitting() ? 'Publishing…' : 'Publish listing' }}
           </app-button>
