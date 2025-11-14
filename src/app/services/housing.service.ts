@@ -37,9 +37,9 @@ export interface HousingSummary {
   imageUrl?: string | null; // Alias for principalImage
 }
 
-// Backend HousingResponse: title, description, city, address, latitude, length, nightPrice, maxCapacity, services, images, averageRating, hostName
+// Backend HousingResponse: id, title, description, city, address, latitude, length, nightPrice, maxCapacity, services, images, averageRating, hostName
 export interface HousingDetails {
-  id?: number; // Not in backend HousingResponse, but we can infer it
+  id: number; // Now included in backend HousingResponse
   title: string;
   description: string;
   city: string;
@@ -166,8 +166,17 @@ export class HousingService {
    * Backend endpoint: GET /housings/{id}
    */
   getHousingById(id: number): Observable<HousingDetails> {
+    console.log('Fetching housing by ID:', id, 'from:', `${this.houseURL}/${id}`);
     return this.http.get<HousingDetails>(`${this.houseURL}/${id}`).pipe(
+      map((response) => {
+        console.log('Housing response received:', response);
+        return response;
+      }),
       catchError((error: any) => {
+        console.error('Error fetching housing by ID:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        console.error('Error body:', error.error);
         this.errorHandler.logError('HousingService.getHousingById', error);
         const message = this.errorHandler.extractErrorMessage(error);
         return throwError(() => new Error(message));

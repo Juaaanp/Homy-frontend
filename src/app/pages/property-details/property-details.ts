@@ -124,24 +124,31 @@ export class PropertyDetailsComponent implements OnInit {
     this.loading.set(true);
     const numericId = parseInt(id);
     
+    console.log('Loading property with ID:', id, 'parsed as:', numericId);
+    
     if (isNaN(numericId) || numericId <= 0) {
+      console.warn('Invalid property ID:', id);
       this.loading.set(false);
-      // Redirigir directamente a explore
       this.router.navigate(['/explore']);
       return;
     }
     
     this.housingService.getHousingById(numericId).subscribe({
       next: (housing) => {
-        this.property.set(this.mapHousingToProperty(housing));
+        console.log('Property loaded successfully:', housing);
+        const mappedProperty = this.mapHousingToProperty(housing);
+        console.log('Mapped property:', mappedProperty);
+        this.property.set(mappedProperty);
         this.loading.set(false);
         this.loadFavoriteStatus(numericId);
         this.loadComments(numericId);
         this.checkIfHost();
       },
       error: (error) => {
+        console.error('Error loading property:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
         this.loading.set(false);
-        // Redirigir directamente a explore sin mostrar página de error
         this.router.navigate(['/explore']);
       }
     });
