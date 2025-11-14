@@ -61,7 +61,7 @@ export class ListSpace implements OnInit {
   validBasic = computed(() => this.title().trim().length >= 6 && this.guests() >= 1);
   validLocation = computed(() => this.city().trim().length >= 2 && this.address().trim().length >= 6);
   validPricing = computed(() => this.price() > 0);
-  validImages = computed(() => this.images().length >= 1 && this.images().length <= 10);
+  validImages = computed(() => this.images().length <= 10); // Imágenes opcionales, máximo 10
 
   constructor(
     private router: Router,
@@ -197,8 +197,8 @@ export class ListSpace implements OnInit {
     if (this.step() === 4 && !this.validImages()) {
       Swal.fire({
         icon: 'warning',
-        title: 'Images Required',
-        text: 'Please upload at least 1 image (maximum 10 images)',
+        title: 'Too Many Images',
+        text: 'You can upload a maximum of 10 images',
         confirmButtonColor: '#f97316'
       });
       return;
@@ -211,16 +211,15 @@ export class ListSpace implements OnInit {
   }
 
   submit() {
-    // Validate images before submitting
+    // Validate images count (optional, max 10)
     if (!this.validImages()) {
-      this.errorMessage.set('Please upload at least 1 image (maximum 10 images) before publishing.');
+      this.errorMessage.set('You can upload a maximum of 10 images.');
       Swal.fire({
         icon: 'warning',
-        title: 'Images Required',
-        text: 'Please upload at least 1 image (maximum 10 images) before publishing your listing.',
+        title: 'Too Many Images',
+        text: 'You can upload a maximum of 10 images. Please remove some images.',
         confirmButtonColor: '#f97316'
       }).then(() => {
-        // Go back to step 4 to upload images
         this.step.set(4);
       });
       return;
@@ -246,23 +245,8 @@ export class ListSpace implements OnInit {
       maxCapacity: Number(this.guests()),
       pricePerNight: Number(this.price()),
       services: this.housingService.mapAmenitiesToServices(this.amenities()),
-      imagesUrls: this.images() // Use uploaded images
+      imagesUrls: this.images().length > 0 ? this.images() : [] // Imágenes opcionales
     };
-
-    // Final validation: ensure imagesUrls is not empty
-    if (!housingData.imagesUrls || housingData.imagesUrls.length === 0) {
-      this.submitting.set(false);
-      this.errorMessage.set('Please upload at least 1 image before publishing.');
-      Swal.fire({
-        icon: 'error',
-        title: 'Images Required',
-        text: 'You must upload at least 1 image to publish your listing. Please go back to the Images step.',
-        confirmButtonColor: '#f97316'
-      }).then(() => {
-        this.step.set(4);
-      });
-      return;
-    }
 
     // Debug: Log data types and values
     console.log('🔍 Housing data before sending:', {
