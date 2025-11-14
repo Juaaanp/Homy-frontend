@@ -81,7 +81,17 @@ export class MyListings implements OnInit {
   loadListings(hostId: number) {
     this.housingService.getHousingsByHost(hostId, 0, 50).subscribe({
       next: (response) => {
-        this.listings.set(response.content);
+        // Mapear la respuesta del backend al formato esperado
+        const mappedListings = response.content.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          city: item.city,
+          address: item.address || '', // El backend puede no devolver address
+          pricePerNight: item.nightPrice || item.pricePerNight,
+          maxCapacity: item.maxCapacity || 0, // El backend puede no devolver maxCapacity
+          imageUrl: item.principalImage || item.imageUrl || null
+        }));
+        this.listings.set(mappedListings);
         this.loading.set(false);
         
         // Show info if no listings yet
@@ -168,6 +178,19 @@ export class MyListings implements OnInit {
   }
 
   showMetrics(housingId: number) {
+    // Validar que el ID sea válido
+    if (!housingId || isNaN(housingId)) {
+      console.error('Invalid housing ID:', housingId);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'ID de alojamiento inválido',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    console.log('Loading metrics for housing ID:', housingId);
     this.showingMetrics.set(housingId);
     this.loadingMetrics.set(true);
     
