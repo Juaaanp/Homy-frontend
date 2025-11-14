@@ -163,35 +163,12 @@ export class HousingService {
 
   /**
    * Get housing by ID
-   * Backend returns HousingResponse directly, not wrapped in ResponseDTO
-   * Note: This endpoint doesn't require authentication, but we send token anyway for consistency
+   * Backend endpoint: GET /housings/{id}
    */
   getHousingById(id: number): Observable<HousingDetails> {
-    // Try with auth headers first, fallback to no auth if 401
-    const token = this.tokenService.getToken();
-    const headers = token 
-      ? this.getAuthHeaders() 
-      : new HttpHeaders({ 'Content-Type': 'application/json' });
-    
-    return this.http.get<HousingDetails>(
-      `${this.houseURL}/${id}`,
-      { headers }
-    ).pipe(
+    return this.http.get<HousingDetails>(`${this.houseURL}/${id}`).pipe(
       catchError((error: any) => {
         this.errorHandler.logError('HousingService.getHousingById', error);
-        // If 401, try without auth
-        if (error.status === 401 && token) {
-          return this.http.get<HousingDetails>(
-            `${this.houseURL}/${id}`,
-            { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
-          ).pipe(
-            catchError((err: any) => {
-              this.errorHandler.logError('HousingService.getHousingById (no auth)', err);
-              const message = this.errorHandler.extractErrorMessage(err);
-              return throwError(() => new Error(message));
-            })
-          );
-        }
         const message = this.errorHandler.extractErrorMessage(error);
         return throwError(() => new Error(message));
       })

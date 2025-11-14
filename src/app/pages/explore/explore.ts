@@ -328,16 +328,10 @@ export class Explore implements OnInit {
   }
   
   viewProperty(id: string | number) {
-    // Simplificado: solo navegar con el ID
     const propertyId = String(id);
-    
-    if (!propertyId || propertyId === 'undefined' || propertyId === 'null' || propertyId === '0') {
-      console.error('Invalid property ID:', propertyId);
-      return;
+    if (propertyId && propertyId !== 'undefined' && propertyId !== 'null' && propertyId !== '0') {
+      this.router.navigate(['/property', propertyId]);
     }
-    
-    // Navegar directamente a la página de detalles
-    this.router.navigate(['/property', propertyId]);
   }
 
   bookProperty(propertyId: string) {

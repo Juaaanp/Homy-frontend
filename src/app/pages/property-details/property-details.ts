@@ -123,8 +123,6 @@ export class PropertyDetailsComponent implements OnInit {
 
   loadProperty(id: string) {
     this.loading.set(true);
-    
-    // Convertir ID a número
     const numericId = parseInt(id);
     
     if (isNaN(numericId) || numericId <= 0) {
@@ -134,39 +132,28 @@ export class PropertyDetailsComponent implements OnInit {
         title: 'Invalid Property ID',
         text: 'The property ID is invalid.',
         confirmButtonColor: '#f97316'
-      }).then(() => {
-        this.router.navigate(['/explore']);
-      });
+      }).then(() => this.router.navigate(['/explore']));
       return;
     }
     
-    // Cargar desde el backend
     this.housingService.getHousingById(numericId).subscribe({
       next: (housing) => {
-        const property = this.mapHousingToProperty(housing);
-        this.property.set(property);
+        this.property.set(this.mapHousingToProperty(housing));
         this.loading.set(false);
-        // Cargar estado de favorito y contador
         this.loadFavoriteStatus(numericId);
-        // Cargar comentarios
         this.loadComments(numericId);
-        // Verificar si es host
         this.checkIfHost();
       },
       error: (error) => {
         this.loading.set(false);
-        
-        // Mostrar error y redirigir
         Swal.fire({
           icon: 'error',
           title: 'Property Not Found',
           text: error.status === 404 
-            ? 'The property you are looking for does not exist or has been removed.'
-            : 'There was an error loading the property details. Please try again later.',
+            ? 'The property does not exist or has been removed.'
+            : 'Error loading property details.',
           confirmButtonColor: '#f97316'
-        }).then(() => {
-          this.router.navigate(['/explore']);
-        });
+        }).then(() => this.router.navigate(['/explore']));
         this.property.set(null);
       }
     });
