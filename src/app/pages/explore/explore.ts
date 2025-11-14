@@ -60,6 +60,10 @@ export class Explore implements OnInit {
   filteredProperties = computed(() => {
     let results = [...this.allProperties()];
     
+    // Filtrar propiedades sin ID válido (pero solo como último recurso)
+    // Primero intentar mostrar todas las propiedades
+    console.log('🔵 filteredProperties: Total properties before filtering:', results.length);
+    
     // Filter by price range
     const [minPrice, maxPrice] = this.priceRange();
     results = results.filter(p => p.price >= minPrice && p.price <= maxPrice);
@@ -179,7 +183,14 @@ export class Explore implements OnInit {
         this.totalProperties.set(response.totalElements || 0);
         
         // Mapear propiedades del backend al formato del frontend
-        const mapped = (response.content || []).map(h => this.mapHousingToProperty(h));
+        const mapped = (response.content || []).map(h => {
+          const property = this.mapHousingToProperty(h);
+          console.log('Mapped property:', { id: property.id, title: property.title, originalId: h.id });
+          return property;
+        });
+        
+        // NO filtrar propiedades - mostrar todas, incluso si el ID no es perfecto
+        // El método viewProperty se encargará de validar el ID cuando se haga clic
         this.allProperties.set(mapped);
         this.loading.set(false);
         
@@ -238,14 +249,14 @@ export class Explore implements OnInit {
     const imageUrl = housing.principalImage || housing.imageUrl || null;
     const price = housing.nightPrice || housing.pricePerNight || 0;
     
-    // Asegurar que el ID sea válido
+    // Asegurar que el ID sea válido - usar el ID del backend directamente
     const housingId = housing.id;
     if (!housingId || housingId <= 0) {
       console.warn('mapHousingToProperty: Invalid housing ID:', housingId, 'for housing:', housing);
     }
     
     return {
-      id: housingId ? String(housingId) : '',
+      id: String(housingId || 0),
       title: housing.title,
       description: 'Explore this amazing property',
       price: price,
