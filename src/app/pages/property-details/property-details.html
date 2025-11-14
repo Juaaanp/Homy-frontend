@@ -208,9 +208,25 @@
 
   @if (!loading() && !property()) {
     <div class="error-container">
-      <h2>Property not found</h2>
-      <p>The property you're looking for doesn't exist.</p>
-      <button class="back-btn" (click)="goBack()">Back to Explore</button>
+      <div class="error-content">
+        <div class="error-icon-wrapper">
+          <lucide-icon [img]="MapPin" class="error-icon"></lucide-icon>
+        </div>
+        <h1 class="error-title">Property Not Found</h1>
+        <p class="error-message">
+          We couldn't find the property you're looking for. It may have been removed or the link is incorrect.
+        </p>
+        <div class="error-actions">
+          <button class="btn-primary" (click)="goBack()">
+            <lucide-icon [img]="ChevronLeft" [strokeWidth]="2"></lucide-icon>
+            Back to Explore
+          </button>
+          <button class="btn-secondary" routerLink="/">
+            <lucide-icon [img]="Home" [strokeWidth]="2"></lucide-icon>
+            Go to Home
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

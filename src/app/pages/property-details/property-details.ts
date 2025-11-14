@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { LucideAngularModule, Star, MapPin, Users, Bed, Bath, Wifi, Car, Tv, Wind, Calendar, Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, Star, MapPin, Users, Bed, Bath, Wifi, Car, Tv, Wind, Calendar, Heart, Share2, ChevronLeft, ChevronRight, Home } from 'lucide-angular';
 import { PropertyService } from '../../services/property.service';
 import { HousingService, HousingDetails } from '../../services/housing.service';
 import { FavoriteService } from '../../services/favorite.service';
@@ -32,6 +32,7 @@ export class PropertyDetailsComponent implements OnInit {
   Share2 = Share2;
   ChevronLeft = ChevronLeft;
   ChevronRight = ChevronRight;
+  Home = Home;
 
   // Signals
   loading = signal(true);
@@ -104,8 +105,14 @@ export class PropertyDetailsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error loading housing from backend:', error);
-          // Fallback to mock data
-          this.loadMockProperty(id);
+          // Si es 404 o 400, mostrar error directamente
+          if (error.status === 404 || error.status === 400) {
+            this.loading.set(false);
+            this.property.set(null);
+          } else {
+            // Para otros errores, intentar con mock data
+            this.loadMockProperty(id);
+          }
         }
       });
     } else {
