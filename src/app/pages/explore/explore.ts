@@ -178,9 +178,15 @@ export class Explore implements OnInit {
         this.backendProperties.set(response.content || []);
         this.totalProperties.set(response.totalElements || 0);
         
+        // Loggear IDs recibidos del backend
+        console.log('🔵 Raw housing IDs from backend:', (response.content || []).map(h => ({ id: h.id, title: h.title })));
+        
         // Mapear propiedades del backend al formato del frontend
-        const mapped = (response.content || []).map(h => this.mapHousingToProperty(h));
-        console.log('Mapped properties:', mapped);
+        const mapped = (response.content || []).map(h => {
+          console.log('🔵 Mapping housing:', { id: h.id, title: h.title, type: typeof h.id });
+          return this.mapHousingToProperty(h);
+        });
+        console.log('✅ Mapped properties with IDs:', mapped.map(p => ({ id: p.id, title: p.title, idType: typeof p.id })));
         this.allProperties.set(mapped);
         this.loading.set(false);
         
@@ -239,8 +245,13 @@ export class Explore implements OnInit {
     const imageUrl = housing.principalImage || housing.imageUrl || null;
     const price = housing.nightPrice || housing.pricePerNight || 0;
     
+    // Verificar que el ID existe y es válido
+    if (!housing.id || housing.id <= 0) {
+      console.error('❌ Invalid housing ID in mapHousingToProperty:', housing);
+    }
+    
     return {
-      id: housing.id.toString(),
+      id: housing.id ? housing.id.toString() : '0',
       title: housing.title,
       description: 'Explore this amazing property',
       price: price,
@@ -332,7 +343,23 @@ export class Explore implements OnInit {
     // Convertir a string si es número
     const propertyId = typeof id === 'number' ? id.toString() : id;
     
-    console.log('🔵 Navigating to property details:', propertyId);
+    console.log('🔵 Navigating to property details:', {
+      originalId: id,
+      propertyId: propertyId,
+      type: typeof id
+    });
+    
+    // Verificar que el ID sea válido
+    if (!propertyId || propertyId === 'undefined' || propertyId === 'null') {
+      console.error('❌ Invalid property ID:', propertyId);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property',
+        text: 'The property ID is invalid. Please try again.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
     
     // Pasar fechas y huéspedes como query params para usar en la página de detalles
     this.router.navigate(['/property', propertyId], {
