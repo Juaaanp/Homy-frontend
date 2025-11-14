@@ -161,10 +161,11 @@
         <section *ngIf="step() === 3" class="card">
           <h2 class="card-title">
             <lucide-icon name="credit-card" class="title-icon"></lucide-icon>
-            Payment (mock) & Confirmation
+            Payment (Simulated) & Confirmation
           </h2>
           <p class="card-subtitle">
-            This is a visual mock. Replace with your real checkout later.
+            <strong>⚠️ Payment is fully simulated - No real charges will be made.</strong><br>
+            This is a demo payment form. Your booking will be confirmed without any actual payment processing.
           </p>
 
           <div *ngIf="!confirmed()">
@@ -317,7 +318,7 @@
           <div class="security-notice">
             <lucide-icon name="shield" class="security-icon"></lucide-icon>
             <p>
-              Your payment is processed securely. Hosts never see your full card details.
+              <strong>⚠️ Simulated Payment:</strong> No real charges will be made. This is a demo booking system.
             </p>
           </div>
         </div>

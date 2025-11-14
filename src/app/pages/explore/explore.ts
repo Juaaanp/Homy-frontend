@@ -384,16 +384,92 @@ export class Explore implements OnInit {
     );
   }
 
-  bookProperty(propertyId: string) {
+  bookProperty(propertyId: string | number) {
+    console.log('bookProperty called with propertyId:', propertyId);
+    
+    if (!propertyId) {
+      console.error('bookProperty: No property ID provided');
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property',
+        text: 'Unable to book property. Please try again.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    const id = String(propertyId).trim();
+    if (id === 'undefined' || id === 'null' || id === '0' || id === '') {
+      console.error('bookProperty: Invalid property ID:', id);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property',
+        text: 'Unable to book property. Please try again.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    // Verificar que el usuario esté autenticado
+    const token = this.tokenService.getToken();
+    if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'You must be logged in as a guest to make a booking.',
+        confirmButtonColor: '#f97316',
+        confirmButtonText: 'Go to Login'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/login'], { 
+            queryParams: { returnUrl: `/booking?propertyId=${id}` }
+          });
+        }
+      });
+      return;
+    }
+    
+    // Verificar rol
+    const userRole = this.tokenService.getRole();
+    if (userRole !== 'GUEST') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only guests can make bookings. Please login with a guest account.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    console.log('bookProperty: Navigating to /booking with params:', {
+      propertyId: id,
+      checkIn: this.checkIn(),
+      checkOut: this.checkOut(),
+      guests: this.guests()
+    });
+    
     // Navegar a booking con todos los parámetros necesarios
     this.router.navigate(['/booking'], {
       queryParams: {
-        propertyId,
-        checkIn: this.checkIn(),
-        checkOut: this.checkOut(),
-        guests: this.guests()
+        propertyId: id,
+        checkIn: this.checkIn() || undefined,
+        checkOut: this.checkOut() || undefined,
+        guests: this.guests() || undefined
       }
-    });
+    }).then(
+      (success) => {
+        console.log('bookProperty: Navigation successful:', success);
+      },
+      (error) => {
+        console.error('bookProperty: Navigation failed:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Navigation Error',
+          text: 'Unable to navigate to booking page. Please try again.',
+          confirmButtonColor: '#f97316'
+        });
+      }
+    );
   }
   
   getStarArray(count: number): number[] {

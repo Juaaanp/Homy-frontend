@@ -293,18 +293,25 @@ export class BookingComponent implements OnInit {
         // Mostrar mensaje de éxito
         Swal.fire({
           icon: 'success',
-          title: 'Booking Confirmed!',
-          html: `Your booking has been created successfully.<br><br>
-                 <strong>Property:</strong> ${this.housing()?.title || 'N/A'}<br>
-                 <strong>Check-in:</strong> ${this.checkIn()}<br>
-                 <strong>Check-out:</strong> ${this.checkOut()}<br>
-                 <strong>Guests:</strong> ${this.guests()}<br>
-                 <strong>Total:</strong> $${this.total().toLocaleString()}`,
+          title: 'Booking Confirmed! 🎉',
+          html: `<div style="text-align: left;">
+                 <p><strong>✅ Your booking has been created successfully!</strong></p>
+                 <p><strong>⚠️ Payment was simulated - No real charges were made.</strong></p>
+                 <hr style="margin: 15px 0;">
+                 <p><strong>Property:</strong> ${this.housing()?.title || 'N/A'}</p>
+                 <p><strong>Check-in:</strong> ${this.checkIn()}</p>
+                 <p><strong>Check-out:</strong> ${this.checkOut()}</p>
+                 <p><strong>Guests:</strong> ${this.guests()}</p>
+                 <p><strong>Total (simulated):</strong> $${this.total().toLocaleString()}</p>
+                 <hr style="margin: 15px 0;">
+                 <p style="font-size: 0.9em; color: #666;">The property is now reserved for these dates. You can view your booking in "My Bookings".</p>
+                 </div>`,
           confirmButtonColor: '#f97316',
-          confirmButtonText: 'View My Bookings'
+          confirmButtonText: 'View My Bookings',
+          width: '500px'
         }).then((result) => {
           if (result.isConfirmed) {
-            this.router.navigate(['/my-bookings']);
+            this.router.navigate(['/bookings']);
           } else {
             this.router.navigate(['/explore']);
           }
