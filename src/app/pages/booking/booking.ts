@@ -7,12 +7,11 @@ import { ButtonComponent } from '../../components/button/button.component';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { BookingService, BookingCreateDTO } from '../../services/booking.service';
+import { HousingService, HousingDetails } from '../../services/housing.service';
 import { TokenService } from '../../services/token.service';
+import Swal from 'sweetalert2';
 
 type Step = 1 | 2 | 3;
-
-const NIGHTLY_PRICE = 120;
-const MAX_GUESTS = 4;
 
 @Component({
   selector: 'app-booking',
@@ -29,14 +28,16 @@ const MAX_GUESTS = 4;
   styleUrls: ['./booking.css'],
 })
 export class BookingComponent implements OnInit {
-  // Constants
-  readonly NIGHTLY_PRICE = NIGHTLY_PRICE;
-  readonly MAX_GUESTS = MAX_GUESTS;
-
   // Property and user data
   propertyId = signal<number | null>(null);
   userId = signal<number | null>(null);
   submitting = signal(false);
+  loading = signal(true);
+  
+  // Housing data (loaded from backend)
+  housing = signal<HousingDetails | null>(null);
+  nightlyPrice = signal(0);
+  maxGuests = signal(4);
 
   // Step management
   step = signal<Step>(1);
@@ -71,8 +72,8 @@ export class BookingComponent implements OnInit {
   confirmed = signal(false);
   s3Error = signal<string | null>(null);
 
-  // Price breakdown computed
-  subtotal = computed(() => this.nights() * NIGHTLY_PRICE);
+  // Price breakdown computed (usando precio real del housing)
+  subtotal = computed(() => this.nights() * this.nightlyPrice());
   cleaningFee = computed(() => Math.round(this.subtotal() * 0.05));
   serviceFee = computed(() => Math.round(this.subtotal() * 0.08));
   taxes = computed(() => Math.round(this.subtotal() * 0.1));
@@ -84,15 +85,60 @@ export class BookingComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
+    private housingService: HousingService,
     private tokenService: TokenService
   ) {}
 
   ngOnInit(): void {
+    // Verificar autenticación primero
+    const userIdStr = this.tokenService.getUserId();
+    if (!userIdStr) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'You must be logged in to make a booking',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/login'], { 
+          queryParams: { returnUrl: '/booking' }
+        });
+      });
+      return;
+    }
+    
+    this.userId.set(parseInt(userIdStr));
+    
+    // Verificar rol
+    const userRole = this.tokenService.getRole();
+    if (userRole !== 'GUEST') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only guests can make bookings. Please login with a guest account.',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/']);
+      });
+      return;
+    }
+
     // Get propertyId from route params
     this.route.queryParams.subscribe(params => {
       const propertyId = params['propertyId'];
       if (propertyId) {
         this.propertyId.set(parseInt(propertyId));
+        // Cargar datos del housing
+        this.loadHousingData(parseInt(propertyId));
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Missing Property',
+          text: 'No property selected. Please select a property first.',
+          confirmButtonColor: '#f97316'
+        }).then(() => {
+          this.router.navigate(['/explore']);
+        });
+        return;
       }
 
       // Get dates and guests from params if provided
@@ -100,18 +146,31 @@ export class BookingComponent implements OnInit {
       if (params['checkOut']) this.checkOut.set(params['checkOut']);
       if (params['guests']) this.guests.set(parseInt(params['guests']));
     });
-
-    // Get userId from token
-    const userIdStr = this.tokenService.getUserId();
-    if (userIdStr) {
-      this.userId.set(parseInt(userIdStr));
-    } else {
-      // User not authenticated, redirect to login
-      alert('You must be logged in to make a booking');
-      this.router.navigate(['/login'], { 
-        queryParams: { returnUrl: '/booking' }
-      });
-    }
+  }
+  
+  loadHousingData(housingId: number) {
+    this.loading.set(true);
+    this.housingService.getHousingById(housingId).subscribe({
+      next: (housing) => {
+        this.housing.set(housing);
+        // Establecer precio por noche y capacidad máxima desde el housing real
+        this.nightlyPrice.set(housing.nightPrice || housing.pricePerNight || 0);
+        this.maxGuests.set(housing.maxCapacity || 4);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading housing data:', error);
+        this.loading.set(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load property information. Please try again.',
+          confirmButtonColor: '#f97316'
+        }).then(() => {
+          this.router.navigate(['/explore']);
+        });
+      }
+    });
   }
 
   toISODateInput(d: Date): string {
@@ -151,8 +210,8 @@ export class BookingComponent implements OnInit {
       this.s1Error.set('At least 1 guest is required.');
       return;
     }
-    if (this.guests() > MAX_GUESTS) {
-      this.s1Error.set(`Maximum capacity is ${MAX_GUESTS} guests.`);
+    if (this.guests() > this.maxGuests()) {
+      this.s1Error.set(`Maximum capacity is ${this.maxGuests()} guests.`);
       return;
     }
 
@@ -230,23 +289,52 @@ export class BookingComponent implements OnInit {
         console.log('Booking created:', message);
         this.submitting.set(false);
         this.confirmed.set(true);
+        
+        // Mostrar mensaje de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Booking Confirmed!',
+          html: `Your booking has been created successfully.<br><br>
+                 <strong>Property:</strong> ${this.housing()?.title || 'N/A'}<br>
+                 <strong>Check-in:</strong> ${this.checkIn()}<br>
+                 <strong>Check-out:</strong> ${this.checkOut()}<br>
+                 <strong>Guests:</strong> ${this.guests()}<br>
+                 <strong>Total:</strong> $${this.total().toLocaleString()}`,
+          confirmButtonColor: '#f97316',
+          confirmButtonText: 'View My Bookings'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.router.navigate(['/my-bookings']);
+          } else {
+            this.router.navigate(['/explore']);
+          }
+        });
       },
       error: (error) => {
         console.error('Error creating booking:', error);
-        console.error('Error details:', error.error);
         this.submitting.set(false);
         
-        // Better error message
+        // Extraer mensaje de error del backend
         let errorMsg = 'Failed to create booking. ';
-        if (error.message) {
+        if (error.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error.message) {
           errorMsg += error.message;
-        } else if (error.error?.message) {
-          errorMsg += error.error.message;
         } else if (error.error?.content?.message) {
-          errorMsg += error.error.content.message;
+          errorMsg = error.error.content.message;
+        } else {
+          errorMsg += 'Please try again.';
         }
         
         this.s3Error.set(errorMsg);
+        
+        // Mostrar alerta con el error
+        Swal.fire({
+          icon: 'error',
+          title: 'Booking Failed',
+          text: errorMsg,
+          confirmButtonColor: '#f97316'
+        });
       }
     });
   }

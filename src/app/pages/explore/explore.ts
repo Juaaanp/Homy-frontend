@@ -7,6 +7,8 @@ import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { PropertyService, Property } from '../../services/property.service';
 import { HousingService, HousingSummary } from '../../services/housing.service';
+import { TokenService } from '../../services/token.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-explore',
@@ -30,16 +32,26 @@ export class Explore implements OnInit {
   
   // Filter signals (reactive)
   searchLocation = signal('');
-  priceRange = signal(500);
+  priceRange = signal([0, 1000000]); // [minPrice, maxPrice]
   propertyType = signal('');
   rating = signal(0);
   bedrooms = signal(0);
   bathrooms = signal(0);
   sortBy = signal('recommended');
   
-  // Search bar inputs (not used in filtering yet, for future enhancement)
-  checkInOut = '';
-  guests = '';
+  // Search bar inputs - ahora se usan para filtrar
+  checkIn = signal('');
+  checkOut = signal('');
+  guests = signal(1);
+  city = signal('Bogotá');
+  
+  // Pagination
+  currentPage = signal(0);
+  pageSize = signal(20);
+  totalProperties = signal(0);
+  
+  // Fecha mínima para inputs de fecha
+  today = new Date().toISOString().split('T')[0];
   
   propertyTypes = ['All', 'Apartment', 'House', 'Villa', 'Cabin', 'Loft'];
   ratingOptions = [5, 4, 3, 2];
@@ -49,8 +61,8 @@ export class Explore implements OnInit {
     let results = [...this.allProperties()];
     
     // Filter by price range
-    const maxPrice = this.priceRange();
-    results = results.filter(p => p.price <= maxPrice);
+    const [minPrice, maxPrice] = this.priceRange();
+    results = results.filter(p => p.price >= minPrice && p.price <= maxPrice);
     
     // Filter by property type
     const type = this.propertyType();
@@ -76,6 +88,12 @@ export class Explore implements OnInit {
       results = results.filter(p => (p.bathrooms ?? 0) >= minBathrooms);
     }
     
+    // Filter by guests capacity
+    const numGuests = this.guests();
+    if (numGuests > 0) {
+      results = results.filter(p => (p.guests ?? 0) >= numGuests);
+    }
+    
     // Apply sorting
     const sort = this.sortBy();
     switch (sort) {
@@ -86,10 +104,10 @@ export class Explore implements OnInit {
         results.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        results.sort((a, b) => b.rating - a.rating);
+        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'reviews':
-        results.sort((a, b) => b.reviews - a.reviews);
+        results.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
         break;
       case 'recommended':
       default:
@@ -109,28 +127,109 @@ export class Explore implements OnInit {
   constructor(
     private router: Router,
     private propertyService: PropertyService,
-    private housingService: HousingService
+    private housingService: HousingService,
+    private tokenService: TokenService
   ) {}
 
   ngOnInit() {
-    // Load properties from backend
-    this.housingService.getAllHousings(0, 50).subscribe({
+    console.log('🔵 Explore component initialized');
+    
+    // Verificar si el usuario está autenticado
+    const token = this.tokenService.getToken();
+    const userId = this.tokenService.getUserId();
+    const role = this.tokenService.getRole();
+    
+    console.log('User info:', {
+      hasToken: !!token,
+      userId,
+      role,
+      tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
+    });
+    
+    if (!token) {
+      console.warn('⚠️ User not authenticated - properties may not load');
+    }
+    
+    // Cargar propiedades desde el backend SIN filtros
+    console.log('🔵 Calling loadProperties()...');
+    this.loadProperties();
+  }
+  
+  formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+  
+  loadProperties() {
+    this.loading.set(true);
+    
+    console.log('🔵 Loading all active properties (simplified - no filters)...');
+    
+    // Llamar al endpoint simplificado que devuelve todas las propiedades activas
+    this.housingService.getAllHousings(
+      this.currentPage(),
+      this.pageSize()
+    ).subscribe({
       next: (response) => {
-        this.backendProperties.set(response.content);
-        // Map backend properties to frontend Property interface
-        const mapped = response.content.map(h => this.mapHousingToProperty(h));
+        console.log('✅ Properties loaded successfully:', response);
+        console.log('Total elements:', response.totalElements);
+        console.log('Content length:', response.content?.length || 0);
+        console.log('Content:', response.content);
+        
+        this.backendProperties.set(response.content || []);
+        this.totalProperties.set(response.totalElements || 0);
+        
+        // Mapear propiedades del backend al formato del frontend
+        const mapped = (response.content || []).map(h => this.mapHousingToProperty(h));
+        console.log('Mapped properties:', mapped);
         this.allProperties.set(mapped);
         this.loading.set(false);
+        
+        if (mapped.length === 0) {
+          console.warn('⚠️ No properties found - database may be empty or all properties are deleted');
+          console.warn('Response was:', JSON.stringify(response, null, 2));
+        } else {
+          console.log(`✅ Successfully loaded ${mapped.length} properties`);
+        }
       },
       error: (error) => {
         console.error('Error loading properties:', error);
-        // Fallback to mock data
-        this.propertyService.getAllProperties().subscribe({
-          next: (properties) => {
-            this.allProperties.set(properties);
-            this.loading.set(false);
-          }
+        console.error('Error details:', {
+          status: error.status,
+          message: error.message,
+          error: error.error
         });
+        this.loading.set(false);
+        
+        // Si es un error 401, el usuario necesita autenticarse
+        if (error.status === 401) {
+          console.warn('Authentication required - user needs to login');
+          // No mostrar alerta, solo dejar la lista vacía
+          // El usuario puede buscar después de autenticarse
+          this.allProperties.set([]);
+          this.totalProperties.set(0);
+          return;
+        }
+        
+        // Si es un error 400, puede ser que los parámetros sean inválidos
+        if (error.status === 400) {
+          console.warn('Bad request - invalid parameters');
+          this.allProperties.set([]);
+          this.totalProperties.set(0);
+          return;
+        }
+        
+        // Para otros errores, mostrar mensaje pero no bloquear
+        if (error.status && error.status !== 200) {
+          console.error('Unexpected error:', error);
+          // No mostrar alerta para no molestar al usuario
+          // Simplemente dejar la lista vacía
+          this.allProperties.set([]);
+          this.totalProperties.set(0);
+        } else {
+          // Si no hay resultados, simplemente dejar la lista vacía
+          this.allProperties.set([]);
+          this.totalProperties.set(0);
+        }
       }
     });
   }
@@ -180,28 +279,80 @@ export class Explore implements OnInit {
   }
   
   clearFilters() {
-    this.priceRange.set(500);
+    this.priceRange.set([0, 1000000]);
     this.propertyType.set('');
     this.rating.set(0);
     this.bedrooms.set(0);
     this.bathrooms.set(0);
+    // Recargar propiedades con filtros limpios
+    this.loadProperties();
   }
   
   searchProperties() {
-    console.log('Searching with:', {
-      location: this.searchLocation,
-      checkInOut: this.checkInOut,
-      guests: this.guests
-    });
+    // Actualizar ciudad si se ingresó en el search
+    const searchCity = this.searchLocation().trim();
+    if (searchCity) {
+      this.city.set(searchCity);
+    }
+    
+    // Validar fechas (pero permitir búsqueda sin fechas también)
+    if (this.checkIn() && this.checkOut()) {
+      const checkInDate = new Date(this.checkIn());
+      const checkOutDate = new Date(this.checkOut());
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (checkInDate < today) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Date',
+          text: 'Check-in date cannot be in the past.',
+          confirmButtonColor: '#f97316'
+        });
+        return;
+      }
+      
+      if (checkOutDate <= checkInDate) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Dates',
+          text: 'Check-out date must be after check-in date.',
+          confirmButtonColor: '#f97316'
+        });
+        return;
+      }
+    }
+    
+    // Recargar propiedades con los nuevos filtros
+    this.currentPage.set(0);
+    this.loadProperties();
   }
   
-  viewProperty(id: string) {
-    this.router.navigate(['/property', id]);
+  viewProperty(id: string | number) {
+    // Convertir a string si es número
+    const propertyId = typeof id === 'number' ? id.toString() : id;
+    
+    console.log('🔵 Navigating to property details:', propertyId);
+    
+    // Pasar fechas y huéspedes como query params para usar en la página de detalles
+    this.router.navigate(['/property', propertyId], {
+      queryParams: {
+        checkIn: this.checkIn() || undefined,
+        checkOut: this.checkOut() || undefined,
+        guests: this.guests() || undefined
+      }
+    });
   }
 
   bookProperty(propertyId: string) {
+    // Navegar a booking con todos los parámetros necesarios
     this.router.navigate(['/booking'], {
-      queryParams: { propertyId }
+      queryParams: {
+        propertyId,
+        checkIn: this.checkIn(),
+        checkOut: this.checkOut(),
+        guests: this.guests()
+      }
     });
   }
   

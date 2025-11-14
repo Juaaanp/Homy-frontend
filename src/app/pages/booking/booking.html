@@ -27,7 +27,7 @@
             Dates & Guests
           </h2>
           <p class="card-subtitle">
-            Minimum 1 night · No past dates · Max capacity {{ MAX_GUESTS }} guests
+            Minimum 1 night · No past dates · Max capacity {{ maxGuests() }} guests
           </p>
 
           <div class="form-grid">
@@ -58,7 +58,7 @@
               <input
                 type="number"
                 [min]="1"
-                [max]="MAX_GUESTS"
+                [max]="maxGuests()"
                 [ngModel]="guests()"
                 (ngModelChange)="guests.set($event)"
                 class="form-input"
@@ -66,9 +66,12 @@
             </label>
           </div>
 
-          <div class="nights-info">
+          <div class="nights-info" *ngIf="!loading()">
             <span class="font-medium">{{ nights() }}</span>
-            night{{ nights() === 1 ? '' : 's' }} · ${{ NIGHTLY_PRICE }}/night
+            night{{ nights() === 1 ? '' : 's' }} · ${{ nightlyPrice() }}/night
+          </div>
+          <div class="nights-info" *ngIf="loading()">
+            <span>Loading property details...</span>
           </div>
 
           <div *ngIf="s1Error()" class="error-box">
@@ -282,11 +285,13 @@
       <!-- SUMMARY SIDEBAR -->
       <aside class="sidebar">
         <div class="sidebar-sticky">
-          <div class="card border-0 shadow-sm sticky-top">
+          <div class="card border-0 shadow-sm sticky-top" *ngIf="!loading() && housing()">
+            <h3 class="summary-title">{{ housing()?.title || 'Property' }}</h3>
+            <p class="text-sm text-gray-600 mb-4">{{ housing()?.city || '' }}</p>
             <h3 class="summary-title">Price summary</h3>
             <div class="summary-rows">
               <div class="summary-row">
-                <span>${{ NIGHTLY_PRICE }} x {{ nights() }} night{{ nights() === 1 ? '' : 's' }}</span>
+                <span>${{ nightlyPrice() }} x {{ nights() }} night{{ nights() === 1 ? '' : 's' }}</span>
                 <span>${{ subtotal() }}</span>
               </div>
               <div class="summary-row">

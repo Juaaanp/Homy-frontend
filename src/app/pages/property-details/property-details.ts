@@ -99,17 +99,35 @@ export class PropertyDetailsComponent implements OnInit {
     if (id) {
       this.loadProperty(id);
     }
+    
+    // Cargar fechas y huéspedes desde query params si vienen de explore
+    this.route.queryParams.subscribe(params => {
+      if (params['checkIn']) {
+        this.checkInDate.set(params['checkIn']);
+      }
+      if (params['checkOut']) {
+        this.checkOutDate.set(params['checkOut']);
+      }
+      if (params['guests']) {
+        this.guests.set(parseInt(params['guests']) || 1);
+      }
+    });
   }
 
   loadProperty(id: string) {
     this.loading.set(true);
     
+    console.log('🔵 Loading property details for ID:', id);
+    
     // Try to load from backend first
     const numericId = parseInt(id);
     if (!isNaN(numericId)) {
+      console.log('🔵 Fetching housing from backend, ID:', numericId);
       this.housingService.getHousingById(numericId).subscribe({
         next: (housing) => {
+          console.log('✅ Housing loaded successfully:', housing);
           const property = this.mapHousingToProperty(housing);
+          console.log('✅ Mapped property:', property);
           this.property.set(property);
           this.loading.set(false);
           // Cargar estado de favorito y contador
@@ -121,13 +139,30 @@ export class PropertyDetailsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error loading housing from backend:', error);
-          // Si es 404 o 400, mostrar error directamente
+          this.loading.set(false);
+          
+          // Si es 404 o 400, mostrar error al usuario
           if (error.status === 404 || error.status === 400) {
-            this.loading.set(false);
+            Swal.fire({
+              icon: 'error',
+              title: 'Property Not Found',
+              text: 'The property you are looking for does not exist or has been removed.',
+              confirmButtonColor: '#f97316'
+            }).then(() => {
+              this.router.navigate(['/explore']);
+            });
             this.property.set(null);
           } else {
-            // Para otros errores, intentar con mock data
-            this.loadMockProperty(id);
+            // Para otros errores, mostrar mensaje genérico
+            Swal.fire({
+              icon: 'error',
+              title: 'Error Loading Property',
+              text: 'There was an error loading the property details. Please try again later.',
+              confirmButtonColor: '#f97316'
+            }).then(() => {
+              this.router.navigate(['/explore']);
+            });
+            this.property.set(null);
           }
         }
       });
@@ -219,11 +254,94 @@ export class PropertyDetailsComponent implements OnInit {
   }
 
   bookNow() {
-    if (!this.checkInDate() || !this.checkOutDate()) {
-      alert('Please select check-in and check-out dates');
+    // Validar que el usuario esté autenticado
+    const userId = this.tokenService.getUserId();
+    if (!userId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'You must be logged in to make a booking',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/login'], {
+          queryParams: { returnUrl: this.router.url }
+        });
+      });
       return;
     }
     
+    // Validar rol
+    const role = this.tokenService.getRole();
+    if (role !== 'GUEST') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only guests can make bookings. Please login with a guest account.',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    // Validar fechas
+    if (!this.checkInDate() || !this.checkOutDate()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Dates',
+        text: 'Please select both check-in and check-out dates',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    // Validar que las fechas sean válidas
+    const checkIn = new Date(this.checkInDate());
+    const checkOut = new Date(this.checkOutDate());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (checkIn < today) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: 'Check-in date cannot be in the past',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    if (checkOut <= checkIn) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Dates',
+        text: 'Check-out date must be after check-in date',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    // Validar huéspedes
+    const property = this.property();
+    if (this.guests() < 1) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Guests',
+        text: 'At least 1 guest is required',
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    if (property && property.guests && this.guests() > property.guests) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Capacity Exceeded',
+        text: `This property can accommodate up to ${property.guests} guests`,
+        confirmButtonColor: '#f97316'
+      });
+      return;
+    }
+    
+    // Navegar a booking
     this.router.navigate(['/booking'], {
       queryParams: {
         propertyId: this.property()?.id,

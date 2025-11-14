@@ -117,38 +117,43 @@ export class HousingService {
   }
 
   /**
-   * Get all housings with pagination and filters
-   * Backend requires: city, checkIn, checkOut, minPrice, maxPrice, indexPage
+   * Get all active housings - SIMPLIFIED VERSION
+   * Backend endpoint: GET /housings?indexPage=0&size=20
+   * Returns all active properties without any filters
    */
   getAllHousings(
     page: number = 0, 
-    size: number = 10, 
-    city: string = 'Bogotá', 
-    checkIn?: string, 
-    checkOut?: string, 
-    minPrice: number = 0, 
-    maxPrice: number = 100000000
+    size: number = 20
   ): Observable<PageResponse<HousingSummary>> {
-    // Default dates if not provided (today and 30 days from now)
-    const defaultCheckIn = checkIn || new Date().toISOString().split('T')[0];
-    const defaultCheckOut = checkOut || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    // Endpoint simplificado: solo envía paginación
+    const params = new HttpParams()
+      .set('indexPage', page.toString())
+      .set('size', size.toString());
 
-    let params = new HttpParams()
-      .set('city', city)
-      .set('checkIn', defaultCheckIn)
-      .set('checkOut', defaultCheckOut)
-      .set('minPrice', minPrice.toString())
-      .set('maxPrice', maxPrice.toString())
-      .set('indexPage', page.toString());
+    console.log('Calling getAllHousings (simplified):', {
+      page,
+      size,
+      url: this.houseURL
+    });
 
+    // Usar headers normales - el interceptor agregará el token si existe
     return this.http.get<PageResponse<HousingSummary>>(
       this.houseURL,
       { 
-        headers: this.getAuthHeaders(),
         params 
       }
     ).pipe(
       catchError((error: any) => {
+        console.error('Error in getAllHousings:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        console.error('Error body:', error.error);
+        
+        // Si es 401, el usuario necesita autenticarse
+        if (error.status === 401) {
+          console.warn('Authentication required for getAllHousings endpoint');
+        }
+        
         this.errorHandler.logError('HousingService.getAllHousings', error);
         const message = this.errorHandler.extractErrorMessage(error);
         return throwError(() => new Error(message));

@@ -13,7 +13,7 @@
     <!-- Search Bar -->
     <div class="search-section">
       <div class="container">
-        <div class="search-card">
+        <div class="search-card">  
           <div class="search-inputs">
             <div class="search-input-group">
               <lucide-icon name="map-pin" class="input-icon"></lucide-icon>
@@ -26,20 +26,36 @@
             </div>
 
             <div class="search-input-group">
+              <lucide-icon name="calendar" class="input-icon"></lucide-icon>
               <input
-                type="text"
-                [(ngModel)]="checkInOut"
-                placeholder="Check-in / Check-out"
+                type="date"
+                [ngModel]="checkIn()"
+                (ngModelChange)="checkIn.set($event)"
+                [min]="today"
+                placeholder="Check-in"
                 class="search-input"
-                onfocus="(this.type='date')"
-                onblur="(this.type='text')"
               />
             </div>
 
             <div class="search-input-group">
+              <lucide-icon name="calendar" class="input-icon"></lucide-icon>
               <input
-                type="text"
-                [(ngModel)]="guests"
+                type="date"
+                [ngModel]="checkOut()"
+                (ngModelChange)="checkOut.set($event)"
+                [min]="checkIn() || today"
+                placeholder="Check-out"
+                class="search-input"
+              />
+            </div>
+
+            <div class="search-input-group">
+              <lucide-icon name="users" class="input-icon"></lucide-icon>
+              <input
+                type="number"
+                [ngModel]="guests()"
+                (ngModelChange)="guests.set($event || 1)"
+                min="1"
                 placeholder="Guests"
                 class="search-input"
               />
@@ -73,14 +89,15 @@
                   <input
                     type="range"
                     min="0"
-                    max="500"
-                    [ngModel]="priceRange()"
-                    (ngModelChange)="priceRange.set($event)"
+                    max="1000000"
+                    step="10000"
+                    [ngModel]="priceRange()[1]"
+                    (ngModelChange)="priceRange.set([priceRange()[0], $event])"
                     class="slider"
                   />
                   <div class="price-labels">
-                    <span>$0</span>
-                    <span>${{ priceRange() }}+</span>
+                    <span>${{ priceRange()[0] | number }}</span>
+                    <span>${{ priceRange()[1] | number }}+</span>
                   </div>
                 </div>
               </div>
