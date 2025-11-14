@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ResponseDTO } from '../models/response-dto';
 import { TokenService } from './token.service';
+import { ErrorHandlerService } from './error-handler.service';
 
 // Backend User interface (matches backend entity)
 export interface BackendUser {
@@ -64,6 +65,7 @@ export interface UserUpdateDTO {
 export class UserService {
   private tokenService = inject(TokenService);
   private http = inject(HttpClient);
+  private errorHandler = inject(ErrorHandlerService);
   private usersURL = `${environment.apiUrl}/users`;
 
   constructor() { }
@@ -87,7 +89,7 @@ export class UserService {
         return this.mapToUser(response.content);
       }),
       catchError((error) => {
-        console.error('Error fetching user:', error);
+        this.errorHandler.logError('UserService.getCurrentUser', error);
         return of(this.getDefaultUser(userId, email));
       })
     );
@@ -114,9 +116,10 @@ export class UserService {
         const userData = response.success ? response.content : response;
         return this.mapToUser(userData);
       }),
-      catchError((error) => {
-        console.error('Error updating profile:', error);
-        throw error;
+      catchError((error: any) => {
+        this.errorHandler.logError('UserService.updateProfile', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -144,9 +147,9 @@ export class UserService {
       currentPassword,
       newPassword
     }).pipe(
-      catchError((error) => {
-        console.error('Error updating password:', error);
-        const message = error.error?.error || error.error?.message || 'Error al actualizar la contraseña';
+      catchError((error: any) => {
+        this.errorHandler.logError('UserService.updatePassword', error);
+        const message = this.errorHandler.extractErrorMessage(error);
         return throwError(() => new Error(message));
       })
     );

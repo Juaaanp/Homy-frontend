@@ -74,14 +74,19 @@ export class FavoritesComponent implements OnInit {
   }
 
   private mapToSummary(housing: any): HousingSummary {
+    // Backend SummaryHousingResponse: id, title, city, nightPrice, principalImage, averageRating
     return {
       id: housing.id,
       title: housing.title,
       city: housing.city,
-      address: housing.address,
-      pricePerNight: housing.pricePerNight,
-      maxCapacity: housing.maxCapacity,
-      imageUrl: housing.images?.[0]?.url || null
+      nightPrice: housing.nightPrice || housing.pricePerNight || 0,
+      principalImage: housing.principalImage || housing.imageUrl || null,
+      averageRating: housing.averageRating || null,
+      // Frontend compatibility fields
+      address: housing.address || '',
+      pricePerNight: housing.nightPrice || housing.pricePerNight || 0, // Alias
+      maxCapacity: housing.maxCapacity || 0,
+      imageUrl: housing.principalImage || housing.imageUrl || null // Alias
     };
   }
 }

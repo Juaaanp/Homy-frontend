@@ -81,15 +81,20 @@ export class MyListings implements OnInit {
   loadListings(hostId: number) {
     this.housingService.getHousingsByHost(hostId, 0, 50).subscribe({
       next: (response) => {
+        // Backend SummaryHousingResponse: id, title, city, nightPrice, principalImage, averageRating
         // Mapear la respuesta del backend al formato esperado
         const mappedListings = response.content.map((item: any) => ({
           id: item.id,
           title: item.title,
           city: item.city,
-          address: item.address || '', // El backend puede no devolver address
-          pricePerNight: item.nightPrice || item.pricePerNight,
-          maxCapacity: item.maxCapacity || 0, // El backend puede no devolver maxCapacity
-          imageUrl: item.principalImage || item.imageUrl || null
+          nightPrice: item.nightPrice,
+          principalImage: item.principalImage || null,
+          averageRating: item.averageRating || null,
+          // Frontend compatibility fields
+          address: '', // Not in SummaryHousingResponse
+          pricePerNight: item.nightPrice, // Alias
+          maxCapacity: 0, // Not in SummaryHousingResponse
+          imageUrl: item.principalImage || null // Alias
         }));
         this.listings.set(mappedListings);
         this.loading.set(false);

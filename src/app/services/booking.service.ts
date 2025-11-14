@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ResponseDTO } from '../models/response-dto';
 import { TokenService } from './token.service';
+import { ErrorHandlerService } from './error-handler.service';
 
 // DTO for creating a booking (matches backend BookingCreateDTO)
 export interface BookingCreateDTO {
@@ -52,9 +53,18 @@ export interface BookingSummaryDTO {
 export class BookingService {
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private errorHandler = inject(ErrorHandlerService);
   private bookingsURL = `${environment.apiUrl}/bookings`;
 
   constructor() { }
+
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.tokenService.getToken();
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
 
   /**
    * Create a new booking
@@ -68,9 +78,9 @@ export class BookingService {
         }
         return response.content || 'Booking created successfully';
       }),
-      catchError((error) => {
-        console.error('Error creating booking:', error);
-        const message = error.error?.content || error.error?.message || 'Failed to create booking';
+      catchError((error: any) => {
+        this.errorHandler.logError('BookingService.createBooking', error);
+        const message = this.errorHandler.extractErrorMessage(error);
         return throwError(() => new Error(message));
       })
     );
@@ -98,12 +108,28 @@ export class BookingService {
   }
 
   public getById(id: number): Observable<ResponseDTO> {
-    return this.http.get<ResponseDTO>(`${this.bookingsURL}/${id}`);
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('BookingService.getById', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
+    );
   }
 
   public cancel(id: number): Observable<ResponseDTO> {
     // Backend uses PATCH /bookings/{id}/cancel
-    return this.http.patch<ResponseDTO>(`${this.bookingsURL}/${id}/cancel`, {});
+    return this.http.patch<ResponseDTO>(`${this.bookingsURL}/${id}/cancel`, {}, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('BookingService.cancel', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
+    );
   }
 
   // Compatibility methods for existing components

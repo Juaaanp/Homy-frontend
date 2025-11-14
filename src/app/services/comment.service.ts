@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { TokenService } from './token.service';
+import { ErrorHandlerService } from './error-handler.service';
 
 export interface Comment {
   id: number;
@@ -29,6 +30,7 @@ export interface CommentRequest {
 export class CommentService {
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private errorHandler = inject(ErrorHandlerService);
   private housingsURL = `${environment.apiUrl}/housings`;
 
   private getAuthHeaders(): HttpHeaders {
@@ -55,8 +57,9 @@ export class CommentService {
 
     return this.http.get<Comment[]>(`${this.housingsURL}/${housingId}/comments`, { headers }).pipe(
       catchError((error: any) => {
-        console.error('Error fetching comments:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('CommentService.getComments', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -72,8 +75,9 @@ export class CommentService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error creating comment:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('CommentService.createComment', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -90,8 +94,9 @@ export class CommentService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error replying to comment:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('CommentService.replyToComment', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }

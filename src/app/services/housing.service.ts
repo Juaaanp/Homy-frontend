@@ -1,50 +1,61 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { TokenService } from './token.service';
+import { ErrorHandlerService } from './error-handler.service';
 import { environment } from '../../environments/environment';
 
 
 // Backend DTOs
+// Backend CreateOrEditHousingRequest: title, description, city, latitude, length, address, maxCapacity, pricePerNight, services, imagesUrls
 export interface CreateHousingDTO {
   title: string;
   description: string;
   city: string;
   latitude: number;
-  length: number; // Note: backend uses "length" instead of "longitude"
+  length: number; // Backend uses "length" instead of "longitude"
   address: string;
   maxCapacity: number;
-  pricePerNight: number;
-  services: string[]; // e.g., ["WIFI", "PARKING", "POOL"]
-  imagesUrls: string[];
+  pricePerNight: number; // Backend uses pricePerNight
+  services: string[]; // List<ServicesEnum> - e.g., ["WIFI", "PARKING", "POOL"]
+  imagesUrls: string[]; // Backend uses imagesUrls (plural)
 }
 
+// Backend SummaryHousingResponse: id, title, city, nightPrice, principalImage, averageRating
 export interface HousingSummary {
   id: number;
   title: string;
   city: string;
-  address: string;
-  pricePerNight: number;
-  maxCapacity: number;
-  imageUrl: string | null;
+  nightPrice: number; // Backend uses nightPrice, not pricePerNight
+  principalImage: string | null; // Backend uses principalImage, not imageUrl
+  averageRating: number | null;
+  // Frontend compatibility fields (mapped from backend)
+  address?: string; // Not in backend SummaryHousingResponse
+  pricePerNight?: number; // Alias for nightPrice
+  maxCapacity?: number; // Not in backend SummaryHousingResponse
+  imageUrl?: string | null; // Alias for principalImage
 }
 
+// Backend HousingResponse: title, description, city, address, latitude, length, nightPrice, maxCapacity, services, images, averageRating, hostName
 export interface HousingDetails {
-  id: number;
+  id?: number; // Not in backend HousingResponse, but we can infer it
   title: string;
   description: string;
   city: string;
-  latitude: number;
-  length: number;
   address: string;
+  latitude: number;
+  length: number; // Backend uses "length" instead of "longitude"
+  nightPrice: number; // Backend uses nightPrice
   maxCapacity: number;
-  pricePerNight: number;
-  services: string[];
-  images: HousingImage[];
-  hostId: number;
+  services: string[]; // List<ServicesEnum>
+  images: string[]; // Backend returns List<String>, not List<HousingImage>
+  averageRating: number | null;
   hostName: string;
-  createdAt: string;
+  // Frontend compatibility fields
+  pricePerNight?: number; // Alias for nightPrice
+  hostId?: number; // Not in backend HousingResponse
+  createdAt?: string; // Not in backend HousingResponse
 }
 
 export interface HousingImage {
@@ -75,11 +86,10 @@ export interface EntityCreatedResponse {
   providedIn: 'root'
 })
 export class HousingService {
+  private http = inject(HttpClient);
+  private tokenService = inject(TokenService);
+  private errorHandler = inject(ErrorHandlerService);
   private houseURL = `${environment.apiUrl}/housings`;
-  constructor(
-    private http: HttpClient,
-    private tokenService: TokenService
-  ) {}
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.tokenService.getToken();
@@ -99,8 +109,9 @@ export class HousingService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error creating housing:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.createHousing', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -138,8 +149,9 @@ export class HousingService {
       }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error fetching housings:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.getAllHousings', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -161,7 +173,7 @@ export class HousingService {
       { headers }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error fetching housing details:', error);
+        this.errorHandler.logError('HousingService.getHousingById', error);
         // If 401, try without auth
         if (error.status === 401 && token) {
           return this.http.get<HousingDetails>(
@@ -169,12 +181,14 @@ export class HousingService {
             { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
           ).pipe(
             catchError((err: any) => {
-              console.error('Error fetching housing details (no auth):', err);
-              return throwError(() => err);
+              this.errorHandler.logError('HousingService.getHousingById (no auth)', err);
+              const message = this.errorHandler.extractErrorMessage(err);
+              return throwError(() => new Error(message));
             })
           );
         }
-        return throwError(() => error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -195,8 +209,9 @@ export class HousingService {
       }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error fetching host housings:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.getHousingsByHost', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -219,8 +234,9 @@ export class HousingService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error updating housing:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.updateHousing', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -235,8 +251,9 @@ export class HousingService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error deleting housing:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.deleteHousing', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -258,8 +275,9 @@ export class HousingService {
       }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error fetching housing metrics:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.getHousingMetrics', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -281,8 +299,9 @@ export class HousingService {
       }
     ).pipe(
       catchError((error: any) => {
-        console.error('Error fetching availability calendar:', error);
-        return throwError(() => error);
+        this.errorHandler.logError('HousingService.getAvailabilityCalendar', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
       })
     );
   }

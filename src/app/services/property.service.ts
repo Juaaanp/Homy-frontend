@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ResponseDTO } from '../models/response-dto';
 import { TokenService } from './token.service';
+import { ErrorHandlerService } from './error-handler.service';
 
 // Frontend interface for Property (for component compatibility)
 export interface Property {
@@ -34,6 +36,7 @@ export interface Property {
 export class PropertyService {
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private errorHandler = inject(ErrorHandlerService);
   private housingsURL = `${environment.apiUrl}/housings`;
 
   constructor() { }
@@ -51,6 +54,12 @@ export class PropertyService {
       `${this.housingsURL}/create`, 
       createPlaceDTO,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.create', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -59,6 +68,12 @@ export class PropertyService {
       `${this.housingsURL}/edit/${id}`, 
       editPlaceDTO,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.edit', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -66,6 +81,12 @@ export class PropertyService {
     return this.http.delete<ResponseDTO>(
       `${this.housingsURL}/delete/${id}`,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.delete', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -73,6 +94,12 @@ export class PropertyService {
     return this.http.get<ResponseDTO>(
       `${this.housingsURL}/${id}`,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.getById', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -96,7 +123,13 @@ export class PropertyService {
       .set('maxPrice', '100000000')
       .set('indexPage', page.toString());
 
-    return this.http.get<ResponseDTO>(this.housingsURL, { params });
+    return this.http.get<ResponseDTO>(this.housingsURL, { params }).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.getAll', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
+    );
   }
 
   public getComentarios(id: number, page: number = 0, size: number = 10): Observable<ResponseDTO> {
@@ -104,6 +137,12 @@ export class PropertyService {
     return this.http.get<any>(
       `${this.housingsURL}/${id}/comments`,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.getComentarios', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -113,6 +152,12 @@ export class PropertyService {
       `${this.housingsURL}/${id}/comments/create`, 
       comentarioDTO,
       { headers: this.getAuthHeaders() }
+    ).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('PropertyService.createComentario', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
     );
   }
 

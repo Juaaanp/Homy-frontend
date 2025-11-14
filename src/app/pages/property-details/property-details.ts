@@ -151,15 +151,20 @@ export class PropertyDetailsComponent implements OnInit {
   }
 
   mapHousingToProperty(housing: HousingDetails): any {
+    // Backend HousingResponse: images is List<String>, not List<HousingImage>
+    const images = Array.isArray(housing.images) 
+      ? housing.images 
+      : (housing.images as any)?.map?.((img: any) => img.url || img) || [];
+    
     return {
-      id: housing.id.toString(),
+      id: (housing.id || 0).toString(),
       title: housing.title,
       description: housing.description,
-      price: housing.pricePerNight,
-      location: `${housing.city}, ${housing.address}`,
+      price: housing.nightPrice || housing.pricePerNight || 0,
+      location: `${housing.city}, ${housing.address || ''}`,
       city: housing.city,
       country: 'Colombia',
-      rating: 4.5,
+      rating: housing.averageRating || 4.5,
       reviews: 0,
       reviewCount: 0,
       bedrooms: 2,
@@ -167,10 +172,10 @@ export class PropertyDetailsComponent implements OnInit {
       guests: housing.maxCapacity,
       area: 1200,
       type: 'Apartment',
-      images: housing.images.length > 0 
-        ? housing.images.map(img => img.url) 
+      images: images.length > 0 
+        ? images 
         : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-      imageUrl: housing.images[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+      imageUrl: images[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
       amenities: housing.services || [],
       host: {
         name: housing.hostName || 'Host',

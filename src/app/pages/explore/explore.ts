@@ -136,24 +136,28 @@ export class Explore implements OnInit {
   }
 
   mapHousingToProperty(housing: HousingSummary): Property {
+    // Backend SummaryHousingResponse: id, title, city, nightPrice, principalImage, averageRating
+    const imageUrl = housing.principalImage || housing.imageUrl || null;
+    const price = housing.nightPrice || housing.pricePerNight || 0;
+    
     return {
       id: housing.id.toString(),
       title: housing.title,
       description: 'Explore this amazing property',
-      price: housing.pricePerNight,
-      location: `${housing.city}, ${housing.address}`,
+      price: price,
+      location: `${housing.city}${housing.address ? ', ' + housing.address : ''}`,
       city: housing.city,
       country: 'Colombia',
-      rating: 4.5,
+      rating: housing.averageRating || 4.5,
       reviews: 0,
       reviewCount: 0,
       bedrooms: 2,
       bathrooms: 1,
-      guests: housing.maxCapacity,
+      guests: housing.maxCapacity || 2,
       area: 1200,
       type: 'Apartment',
-      images: housing.imageUrl ? [housing.imageUrl] : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-      imageUrl: housing.imageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+      images: imageUrl ? [imageUrl] : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
       amenities: [],
       host: {
         name: 'Host',
@@ -163,7 +167,7 @@ export class Explore implements OnInit {
       },
       coordinates: { lat: 0, lng: 0 },
       isNew: true,
-      featured: false
+      featured: (housing.averageRating || 0) >= 4.5
     };
   }
   
