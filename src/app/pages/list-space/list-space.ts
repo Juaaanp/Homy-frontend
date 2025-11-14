@@ -139,7 +139,8 @@ export class ListSpace implements OnInit {
         this.latitude.set(housing.latitude);
         this.longitude.set(housing.length); // Note: backend uses "length"
         this.guests.set(housing.maxCapacity);
-        this.price.set(housing.pricePerNight);
+        // Backend uses nightPrice, pricePerNight is optional alias
+        this.price.set(housing.nightPrice || housing.pricePerNight || 0);
         
         // Map services back to amenities
         const amenityMap: { [key: string]: string } = {
