@@ -5,7 +5,7 @@ import { LucideAngularModule, Heart } from 'lucide-angular';
 import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { FavoriteService } from '../../services/favorite.service';
-import { HousingService, HousingSummary } from '../../services/housing.service';
+import { HousingSummary } from '../../services/housing.service';
 
 @Component({
   selector: 'app-favorites',
@@ -20,8 +20,7 @@ export class FavoritesComponent implements OnInit {
   Heart = Heart;
 
   constructor(
-    private favoriteService: FavoriteService,
-    private housingService: HousingService
+    private favoriteService: FavoriteService
   ) {}
 
   ngOnInit() {
@@ -30,33 +29,17 @@ export class FavoritesComponent implements OnInit {
 
   loadFavorites() {
     this.loading.set(true);
+    // Backend getUserFavorites returns List<SummaryHousingResponse> directly
     this.favoriteService.getUserFavorites().subscribe({
-      next: (housingIds) => {
-        if (housingIds.length === 0) {
-          this.favorites.set([]);
-          this.loading.set(false);
-          return;
-        }
-
-        // Cargar detalles de cada alojamiento favorito
-        const requests = housingIds.map(id => 
-          this.housingService.getHousingById(id)
-        );
-
-        Promise.all(requests.map(req => req.toPromise())).then(results => {
-          const housings = results
-            .filter(h => h !== undefined)
-            .map(h => this.mapToSummary(h));
-          this.favorites.set(housings);
-          this.loading.set(false);
-        }).catch(error => {
-          console.error('Error loading favorite properties:', error);
-          this.loading.set(false);
-        });
+      next: (favorites) => {
+        // Backend already returns the full housing summaries
+        this.favorites.set(favorites);
+        this.loading.set(false);
       },
       error: (error) => {
         console.error('Error loading favorites:', error);
         this.loading.set(false);
+        this.favorites.set([]);
       }
     });
   }
