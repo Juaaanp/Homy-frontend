@@ -104,7 +104,16 @@ export class BookingService {
       params = params.set('size', (filters.size || 10).toString());
     }
 
-    return this.http.get<ResponseDTO>(`${this.bookingsURL}/search`, { params });
+    return this.http.get<ResponseDTO>(`${this.bookingsURL}/search`, { 
+      headers: this.getAuthHeaders(),
+      params 
+    }).pipe(
+      catchError((error: any) => {
+        this.errorHandler.logError('BookingService.getAll', error);
+        const message = this.errorHandler.extractErrorMessage(error);
+        return throwError(() => new Error(message));
+      })
+    );
   }
 
   public getById(id: number): Observable<ResponseDTO> {
