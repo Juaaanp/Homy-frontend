@@ -99,7 +99,6 @@ export class PropertyDetailsComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     
     if (!id) {
-      // Si no hay ID, redirigir a explore
       this.router.navigate(['/explore']);
       return;
     }
@@ -127,12 +126,8 @@ export class PropertyDetailsComponent implements OnInit {
     
     if (isNaN(numericId) || numericId <= 0) {
       this.loading.set(false);
-      Swal.fire({
-        icon: 'error',
-        title: 'Invalid Property ID',
-        text: 'The property ID is invalid.',
-        confirmButtonColor: '#f97316'
-      }).then(() => this.router.navigate(['/explore']));
+      // Redirigir directamente a explore
+      this.router.navigate(['/explore']);
       return;
     }
     
@@ -146,15 +141,8 @@ export class PropertyDetailsComponent implements OnInit {
       },
       error: (error) => {
         this.loading.set(false);
-        Swal.fire({
-          icon: 'error',
-          title: 'Property Not Found',
-          text: error.status === 404 
-            ? 'The property does not exist or has been removed.'
-            : 'Error loading property details.',
-          confirmButtonColor: '#f97316'
-        }).then(() => this.router.navigate(['/explore']));
-        this.property.set(null);
+        // Redirigir directamente a explore sin mostrar página de error
+        this.router.navigate(['/explore']);
       }
     });
   }
