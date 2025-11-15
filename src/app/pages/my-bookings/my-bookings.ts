@@ -82,9 +82,9 @@ export class MyBookings implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'upcoming': return 'status-upcoming';
-      case 'completed': return 'status-completed';
-      case 'cancelled': return 'status-cancelled';
+      case 'upcoming': return 'upcoming';
+      case 'completed': return 'completed';
+      case 'cancelled': return 'cancelled';
       default: return '';
     }
   }
