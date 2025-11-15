@@ -67,7 +67,7 @@
       <lucide-icon name="calendar-x" class="empty-icon"></lucide-icon>
       <h3>No bookings found</h3>
       <p>You don't have any {{ filter() === 'all' ? '' : filter() }} bookings yet.</p>
-      <app-button (click)="router.navigate(['/explore'])" class="btn-explore">
+      <app-button (click)="navigateToExplore()" class="btn-explore">
         <lucide-icon name="search" class="btn-icon"></lucide-icon>
         Explore properties
       </app-button>
