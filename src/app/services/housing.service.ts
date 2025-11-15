@@ -167,9 +167,21 @@ export class HousingService {
    */
   getHousingById(id: number): Observable<HousingDetails> {
     console.log('Fetching housing by ID:', id, 'from:', `${this.houseURL}/${id}`);
+    
+    // SIMPLIFICADO: No requerir autenticación para ver detalles (público)
     return this.http.get<HousingDetails>(`${this.houseURL}/${id}`).pipe(
       map((response) => {
         console.log('Housing response received:', response);
+        console.log('Response keys:', Object.keys(response || {}));
+        console.log('Response id:', response?.id);
+        console.log('Response title:', response?.title);
+        
+        // Validar que la respuesta tenga datos básicos
+        if (!response || !response.id) {
+          console.error('Invalid response structure:', response);
+          throw new Error('Invalid property data received from server');
+        }
+        
         return response;
       }),
       catchError((error: any) => {
@@ -177,8 +189,22 @@ export class HousingService {
         console.error('Error status:', error.status);
         console.error('Error message:', error.message);
         console.error('Error body:', error.error);
+        console.error('Full error:', JSON.stringify(error, null, 2));
+        
         this.errorHandler.logError('HousingService.getHousingById', error);
-        const message = this.errorHandler.extractErrorMessage(error);
+        
+        // Mejorar mensaje de error
+        let message = 'Unable to load property details';
+        if (error.status === 404) {
+          message = 'Property not found';
+        } else if (error.status === 400) {
+          message = error.error?.message || 'Invalid property request';
+        } else if (error.status === 500) {
+          message = 'Server error. Please try again later';
+        } else if (error.message) {
+          message = error.message;
+        }
+        
         return throwError(() => new Error(message));
       })
     );

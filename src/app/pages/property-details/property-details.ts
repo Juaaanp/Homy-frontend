@@ -129,13 +129,36 @@ export class PropertyDetailsComponent implements OnInit {
     if (isNaN(numericId) || numericId <= 0) {
       console.warn('Invalid property ID:', id);
       this.loading.set(false);
-      this.router.navigate(['/explore']);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Property ID',
+        text: 'The property ID is invalid. Please try again.',
+        confirmButtonColor: '#f97316'
+      }).then(() => {
+        this.router.navigate(['/explore']);
+      });
       return;
     }
     
     this.housingService.getHousingById(numericId).subscribe({
       next: (housing) => {
         console.log('Property loaded successfully:', housing);
+        
+        // Validar que housing tenga datos básicos
+        if (!housing || !housing.id) {
+          console.error('Invalid housing data received:', housing);
+          this.loading.set(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Property Data',
+            text: 'The property data is invalid. Please try again.',
+            confirmButtonColor: '#f97316'
+          }).then(() => {
+            this.router.navigate(['/explore']);
+          });
+          return;
+        }
+        
         const mappedProperty = this.mapHousingToProperty(housing);
         console.log('Mapped property:', mappedProperty);
         this.property.set(mappedProperty);
@@ -148,8 +171,29 @@ export class PropertyDetailsComponent implements OnInit {
         console.error('Error loading property:', error);
         console.error('Error status:', error.status);
         console.error('Error message:', error.message);
+        console.error('Error body:', error.error);
         this.loading.set(false);
-        this.router.navigate(['/explore']);
+        
+        // NO redirigir automáticamente, mostrar error y permitir reintentar
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Loading Property',
+          html: `Failed to load property details.<br><br>
+                 <strong>Error:</strong> ${error.status ? `HTTP ${error.status}` : 'Unknown error'}<br>
+                 <strong>Message:</strong> ${error.message || 'Unable to load property'}<br><br>
+                 Please try again or go back to explore.`,
+          confirmButtonColor: '#f97316',
+          showCancelButton: true,
+          confirmButtonText: 'Retry',
+          cancelButtonText: 'Go to Explore'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Reintentar cargar
+            this.loadProperty(id);
+          } else {
+            this.router.navigate(['/explore']);
+          }
+        });
       }
     });
   }
