@@ -252,6 +252,18 @@
     </div>
   }
 
+  @if (!loading() && !property()) {
+    <div class="error-container" style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 2rem;">
+      <div class="error-content" style="text-align: center; max-width: 500px;">
+        <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #333;">Property Not Found</h1>
+        <p style="color: #666; margin-bottom: 2rem;">Unable to load property details. Please try again.</p>
+        <button class="btn-primary" (click)="goBack()" style="padding: 0.75rem 2rem; background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          Back to Explore
+        </button>
+      </div>
+    </div>
+  }
+
 </div>
 
 <app-footer></app-footer>
