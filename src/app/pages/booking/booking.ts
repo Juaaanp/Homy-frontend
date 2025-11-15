@@ -221,23 +221,36 @@ export class BookingComponent implements OnInit {
   }
 
   confirmBooking(): void {
-    // SIMPLIFICADO: Validaciones mínimas
-    if (!this.agree()) {
-      this.s3Error.set('You must agree to the policies to continue.');
-      return;
-    }
-    if (!this.cardName().trim() || !this.cardNumber().trim()) {
-      this.s3Error.set('Please complete the payment details (mock).');
+    console.log('confirmBooking called');
+    console.log('propertyId:', this.propertyId());
+    console.log('userId:', this.userId());
+    console.log('checkIn:', this.checkIn());
+    console.log('checkOut:', this.checkOut());
+    console.log('guests:', this.guests());
+    
+    // SIMPLIFICADO: Validaciones mínimas - solo lo esencial
+    if (!this.propertyId() || !this.userId()) {
+      console.error('Missing propertyId or userId');
+      this.s3Error.set('Missing required booking information. Please try again.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Missing required booking information. Please try again.',
+        confirmButtonColor: '#f97316'
+      });
       return;
     }
 
-    if (!this.propertyId() || !this.userId()) {
-      this.s3Error.set('Missing required booking information. Please try again.');
+    // Validar fechas básicas
+    if (!this.checkIn() || !this.checkOut()) {
+      console.error('Missing dates');
+      this.s3Error.set('Please select check-in and check-out dates.');
       return;
     }
 
     this.s3Error.set(null);
     this.submitting.set(true);
+    console.log('Submitting booking...');
 
     // Prepare booking data
     const bookingData: BookingCreateDTO = {

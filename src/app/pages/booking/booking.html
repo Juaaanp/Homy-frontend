@@ -217,7 +217,7 @@
               </label>
             </div>
 
-            <label class="checkbox-label">
+            <label class="checkbox-label" style="margin-bottom: 1.5rem;">
               <input
                 type="checkbox"
                 [ngModel]="agree()"
@@ -225,13 +225,16 @@
                 class="checkbox-input"
               />
               <span>
-                I agree to the
-                <a class="link-orange">cancellation policy</a>
-                (free up to 48h before check-in) and the
-                <a class="link-orange">house rules</a>
-                (no parties; pets on request).
+                ✅ Acepto las políticas de cancelación y las reglas de la casa
+                <span style="color: #666; font-size: 0.9em;">(El pago es simulado, no se realizarán cargos reales)</span>
               </span>
             </label>
+            
+            <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+              <p style="color: #92400e; font-size: 0.95rem; margin: 0; text-align: center;">
+                <strong>⚠️ Pago Simulado:</strong> Haz clic en "Confirmar Reserva" para crear tu reserva. No se realizarán cargos reales.
+              </p>
+            </div>
 
             <div *ngIf="s3Error()" class="error-box">
               <lucide-icon name="info" class="error-icon"></lucide-icon>
@@ -245,15 +248,16 @@
               </app-button>
               <app-button 
                 (click)="confirmBooking()" 
-                [disabled]="submitting()"
-                class="btn-primary">
+                [disabled]="submitting() || !propertyId() || !userId()"
+                class="btn-primary"
+                style="min-width: 200px; font-size: 1.1rem; padding: 1rem 2rem;">
                 <span *ngIf="!submitting()">
-                  Confirm reservation
+                  ✅ Confirmar Reserva
                   <lucide-icon name="check-circle-2" class="btn-icon-right"></lucide-icon>
                 </span>
                 <span *ngIf="submitting()">
                   <lucide-icon name="loader-2" class="animate-spin"></lucide-icon>
-                  Processing...
+                  Creando reserva...
                 </span>
               </app-button>
             </div>
