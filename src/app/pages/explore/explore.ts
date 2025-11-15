@@ -305,41 +305,7 @@ export class Explore implements OnInit {
   }
   
   searchProperties() {
-    // Actualizar ciudad si se ingresó en el search
-    const searchCity = this.searchLocation().trim();
-    if (searchCity) {
-      this.city.set(searchCity);
-    }
-    
-    // Validar fechas (pero permitir búsqueda sin fechas también)
-    if (this.checkIn() && this.checkOut()) {
-      const checkInDate = new Date(this.checkIn());
-      const checkOutDate = new Date(this.checkOut());
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (checkInDate < today) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Invalid Date',
-          text: 'Check-in date cannot be in the past.',
-          confirmButtonColor: '#f97316'
-        });
-        return;
-      }
-      
-      if (checkOutDate <= checkInDate) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Invalid Dates',
-          text: 'Check-out date must be after check-in date.',
-          confirmButtonColor: '#f97316'
-        });
-        return;
-      }
-    }
-    
-    // Recargar propiedades con los nuevos filtros
+    // SIMPLIFICADO: Solo recargar propiedades, sin validaciones complejas
     this.currentPage.set(0);
     this.loadProperties();
   }

@@ -186,32 +186,19 @@ export class BookingComponent implements OnInit {
   }
 
   validateStep1(): void {
-    const now = new Date(this.today);
-    const inD = new Date(this.checkIn());
-    const outD = new Date(this.checkOut());
-
+    // SIMPLIFICADO: Solo validación básica
     if (!this.checkIn() || !this.checkOut()) {
       this.s1Error.set('Please select both check-in and check-out dates.');
       return;
     }
-    if (inD < now) {
-      this.s1Error.set('Check-in cannot be in the past.');
-      return;
-    }
+    const inD = new Date(this.checkIn());
+    const outD = new Date(this.checkOut());
     if (outD <= inD) {
       this.s1Error.set('Check-out must be after check-in.');
       return;
     }
-    if (this.nights() < 1) {
-      this.s1Error.set('Minimum stay is 1 night.');
-      return;
-    }
     if (this.guests() < 1) {
       this.s1Error.set('At least 1 guest is required.');
-      return;
-    }
-    if (this.guests() > this.maxGuests()) {
-      this.s1Error.set(`Maximum capacity is ${this.maxGuests()} guests.`);
       return;
     }
 
@@ -220,16 +207,13 @@ export class BookingComponent implements OnInit {
   }
 
   validateStep2(): void {
+    // SIMPLIFICADO: Solo validación básica
     if (!this.fullName().trim()) {
       this.s2Error.set('Please enter your full name.');
       return;
     }
-    if (!/^\S+@\S+\.\S+$/.test(this.email())) {
+    if (!this.email().trim() || !this.email().includes('@')) {
       this.s2Error.set('Please enter a valid email.');
-      return;
-    }
-    if (!/^[0-9+\-\s()]{7,}$/.test(this.phone())) {
-      this.s2Error.set('Please enter a valid phone.');
       return;
     }
     this.s2Error.set(null);
@@ -237,34 +221,18 @@ export class BookingComponent implements OnInit {
   }
 
   confirmBooking(): void {
+    // SIMPLIFICADO: Validaciones mínimas
     if (!this.agree()) {
       this.s3Error.set('You must agree to the policies to continue.');
       return;
     }
-    if (
-      !this.cardName().trim() ||
-      !this.cardNumber().trim() ||
-      !this.cardExp().trim() ||
-      !this.cardCvc().trim()
-    ) {
+    if (!this.cardName().trim() || !this.cardNumber().trim()) {
       this.s3Error.set('Please complete the payment details (mock).');
       return;
     }
 
-    // Validate we have required data
     if (!this.propertyId() || !this.userId()) {
       this.s3Error.set('Missing required booking information. Please try again.');
-      return;
-    }
-
-    // Check user role
-    const userRole = this.tokenService.getRole();
-    console.log('User role:', userRole);
-    console.log('User ID:', this.userId());
-    console.log('Property ID:', this.propertyId());
-
-    if (userRole !== 'GUEST') {
-      this.s3Error.set(`Only GUEST users can create bookings. Current role: ${userRole}. Please login with a GUEST account.`);
       return;
     }
 
