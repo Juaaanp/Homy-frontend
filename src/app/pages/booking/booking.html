@@ -147,7 +147,7 @@
 
           <div class="button-row">
             <app-button variant="outline" (click)="goBack(1)">
-              <lucide-icon name="arrow-left" class="btn-icon-left"></lucide-icon>
+              <lucide-icon name="chevron-left" class="btn-icon-left"></lucide-icon>
               Back
             </app-button>
             <app-button (click)="validateStep2()" class="btn-primary">
@@ -160,7 +160,7 @@
         <!-- STEP 3: Payment & Confirmation -->
         <section *ngIf="step() === 3" class="card">
           <h2 class="card-title">
-            <lucide-icon name="credit-card" class="title-icon"></lucide-icon>
+            <lucide-icon name="wallet" class="title-icon"></lucide-icon>
             Payment (Simulated) & Confirmation
           </h2>
           <p class="card-subtitle">
@@ -240,7 +240,7 @@
 
             <div class="button-row">
               <app-button variant="outline" (click)="goBack(2)">
-                <lucide-icon name="arrow-left" class="btn-icon-left"></lucide-icon>
+                <lucide-icon name="chevron-left" class="btn-icon-left"></lucide-icon>
                 Back
               </app-button>
               <app-button 
@@ -259,24 +259,61 @@
             </div>
           </div>
 
-          <div *ngIf="confirmed()" class="success-box">
-            <div class="success-content">
-              <lucide-icon name="check-circle-2" class="success-icon"></lucide-icon>
+          <div *ngIf="confirmed()" class="success-box" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #22c55e; border-radius: 12px; padding: 2rem; margin-top: 1.5rem;">
+            <div class="success-content" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="background: #22c55e; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <lucide-icon name="check-circle-2" style="color: white; width: 40px; height: 40px;"></lucide-icon>
+              </div>
               <div>
-                <h3 class="success-title">Reservation confirmed!</h3>
-                <p class="success-text">
-                  We've sent a confirmation email with your reservation details and receipt.
+                <h3 class="success-title" style="font-size: 1.5rem; font-weight: 700; color: #15803d; margin-bottom: 0.5rem;">✅ Reserva Confirmada y Guardada!</h3>
+                <p class="success-text" style="color: #166534; font-size: 1rem; line-height: 1.6;">
+                  <strong>✅ Tu reserva ha sido creada exitosamente y guardada en la base de datos.</strong><br>
+                  <strong>📧 El host ha sido notificado por email.</strong><br>
+                  <strong>🏠 La propiedad está reservada para las fechas seleccionadas.</strong><br>
+                  <strong>👤 El host puede ver esta reserva en su panel de control.</strong>
                 </p>
               </div>
             </div>
-            <div class="success-details">
-              Check-in <strong>{{ checkIn() }}</strong> ·
-              Check-out <strong>{{ checkOut() }}</strong> ·
-              Guests <strong>{{ guests() }}</strong>
+            
+            <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
+              <h4 style="font-size: 1.1rem; font-weight: 600; color: #15803d; margin-bottom: 1rem;">📋 Detalles de la Reserva:</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                  <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem;">Propiedad:</p>
+                  <p style="font-weight: 600; color: #333; font-size: 1rem;">{{ housing()?.title || 'N/A' }}</p>
+                </div>
+                <div>
+                  <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem;">Check-in:</p>
+                  <p style="font-weight: 600; color: #333; font-size: 1rem;">{{ checkIn() }}</p>
+                </div>
+                <div>
+                  <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem;">Check-out:</p>
+                  <p style="font-weight: 600; color: #333; font-size: 1rem;">{{ checkOut() }}</p>
+                </div>
+                <div>
+                  <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem;">Huéspedes:</p>
+                  <p style="font-weight: 600; color: #333; font-size: 1rem;">{{ guests() }}</p>
+                </div>
+                <div>
+                  <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem;">Total (simulado):</p>
+                  <p style="font-weight: 600; color: #333; font-size: 1rem;">${{ total().toLocaleString() }}</p>
+                </div>
+              </div>
             </div>
-            <div class="success-button">
-              <app-button (click)="navigateHome()" class="btn-primary">
-                Back to Home
+            
+            <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+              <p style="color: #92400e; font-size: 0.9rem; margin: 0;">
+                <strong>⚠️ Nota:</strong> El pago fue simulado. No se realizaron cargos reales. La reserva está activa y guardada en el sistema.
+              </p>
+            </div>
+            
+            <div class="success-button" style="display: flex; gap: 1rem; justify-content: center;">
+              <app-button (click)="router.navigate(['/bookings'])" class="btn-primary" style="flex: 1;">
+                <lucide-icon name="calendar" class="btn-icon-left"></lucide-icon>
+                Ver Mis Reservas
+              </app-button>
+              <app-button variant="outline" (click)="router.navigate(['/explore'])" style="flex: 1;">
+                Explorar Más
               </app-button>
             </div>
           </div>

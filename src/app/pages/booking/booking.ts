@@ -82,7 +82,7 @@ export class BookingComponent implements OnInit {
   );
 
   constructor(
-    private router: Router,
+    public router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
     private housingService: HousingService,
@@ -254,35 +254,32 @@ export class BookingComponent implements OnInit {
     // Send to backend
     this.bookingService.createBooking(bookingData).subscribe({
       next: (message) => {
-        console.log('Booking created:', message);
+        console.log('Booking created successfully:', message);
+        console.log('Booking saved in database for host');
         this.submitting.set(false);
         this.confirmed.set(true);
         
-        // Mostrar mensaje de éxito
+        // Mostrar mensaje de éxito con información clara sobre el guardado
         Swal.fire({
           icon: 'success',
-          title: 'Booking Confirmed! 🎉',
+          title: '¡Reserva Confirmada y Guardada! 🎉',
           html: `<div style="text-align: left;">
-                 <p><strong>✅ Your booking has been created successfully!</strong></p>
-                 <p><strong>⚠️ Payment was simulated - No real charges were made.</strong></p>
+                 <p><strong>✅ Tu reserva ha sido creada y guardada exitosamente en la base de datos.</strong></p>
+                 <p><strong>📧 El host ha sido notificado por email de tu reserva.</strong></p>
+                 <p><strong>🏠 La propiedad está reservada para las fechas seleccionadas.</strong></p>
+                 <p><strong>👤 El host puede ver esta reserva en su panel de control.</strong></p>
                  <hr style="margin: 15px 0;">
-                 <p><strong>Property:</strong> ${this.housing()?.title || 'N/A'}</p>
-                 <p><strong>Check-in:</strong> ${this.checkIn()}</p>
-                 <p><strong>Check-out:</strong> ${this.checkOut()}</p>
-                 <p><strong>Guests:</strong> ${this.guests()}</p>
-                 <p><strong>Total (simulated):</strong> $${this.total().toLocaleString()}</p>
-                 <hr style="margin: 15px 0;">
-                 <p style="font-size: 0.9em; color: #666;">The property is now reserved for these dates. You can view your booking in "My Bookings".</p>
+                 <p><strong>⚠️ El pago fue simulado - No se realizaron cargos reales.</strong></p>
+                 <p style="font-size: 0.9em; color: #666;">Puedes ver los detalles de tu reserva en "Mis Reservas".</p>
                  </div>`,
-          confirmButtonColor: '#f97316',
-          confirmButtonText: 'View My Bookings',
-          width: '500px'
+          confirmButtonColor: '#22c55e',
+          confirmButtonText: 'Ver Mis Reservas',
+          width: '550px',
+          timer: 5000,
+          timerProgressBar: true
         }).then((result) => {
-          if (result.isConfirmed) {
-            this.router.navigate(['/bookings']);
-          } else {
-            this.router.navigate(['/explore']);
-          }
+          // Si el usuario hace clic o el timer expira, no redirigir automáticamente
+          // Dejar que vea la confirmación en la página
         });
       },
       error: (error) => {
