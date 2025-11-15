@@ -372,11 +372,38 @@ export class ListSpace implements OnInit {
         .catch((error) => {
           this.uploadingImages.set(false);
           console.error('Error uploading images:', error);
+          
+          // Extraer mensaje de error más descriptivo
+          let errorMessage = 'Failed to upload images. Please try again.';
+          if (error.message) {
+            errorMessage = error.message;
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.error?.content?.message) {
+            errorMessage = error.error.content.message;
+          }
+          
+          // Mensaje especial si Cloudinary no está configurado
+          if (errorMessage.includes('Cloudinary no está configurado') || 
+              errorMessage.includes('Invalid api_key') ||
+              errorMessage.includes('Invalid cloud_name')) {
+            errorMessage = 'El servicio de imágenes no está configurado. ' +
+                          'Por favor, contacta al administrador o usa URLs de imágenes directamente.';
+          }
+          
           Swal.fire({
             icon: 'error',
-            title: 'Upload Failed',
-            text: error.message || 'Failed to upload images. Please try again.',
-            confirmButtonColor: '#f97316'
+            title: 'Error al Subir Imágenes',
+            html: `<div style="text-align: left;">
+                   <p><strong>${errorMessage}</strong></p>
+                   <hr style="margin: 15px 0;">
+                   <p style="font-size: 0.9em; color: #666;">
+                     <strong>Nota:</strong> Puedes continuar sin subir imágenes. 
+                     Las imágenes son opcionales para crear tu alojamiento.
+                   </p>
+                   </div>`,
+            confirmButtonColor: '#f97316',
+            width: '500px'
           });
         });
     }
