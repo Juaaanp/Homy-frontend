@@ -126,7 +126,7 @@
             style="display: none;"
             [disabled]="uploadingImages() || images().length >= 10">
           <label for="imageInput" class="ls-upload-btn" [class.disabled]="uploadingImages() || images().length >= 10">
-            <lucide-icon name="upload" style="width: 20px; height: 20px; margin-right: 8px;"></lucide-icon>
+            <lucide-icon name="image" style="width: 20px; height: 20px; margin-right: 8px;"></lucide-icon>
             {{ uploadingImages() ? 'Uploading...' : 'Upload Images' }}
           </label>
           <span class="ls-image-count">{{ images().length }}/10 images</span>
